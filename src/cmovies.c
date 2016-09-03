@@ -37,7 +37,7 @@ ctx_movieInfo *testCase;
 */
 int main(int argc, char **argv)
 {
-	printf("\t\t__--//cMovies [v.%s]\\\\--__\n\n", VERSION);
+	printf("\t\t__--//cMovies [v.%s] BETA\\\\--__\n\n", VERSION);
 
 	appendToLog("cMovies[v.%s] was started", VERSION);
     appendToLog("Opening the \"cMovies\" database");

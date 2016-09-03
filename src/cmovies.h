@@ -13,7 +13,7 @@ https://github.com/hackmac89/cMovies
 // OTHER
 // DEBUG
 #define DEBUGMODE 
-#define VERSION "20160827"
+#define VERSION "20160904"
 
 // IMPORTS
 #include <assert.h>   // for "assert" within the "free***Context" functions
