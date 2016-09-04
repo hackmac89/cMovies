@@ -107,7 +107,7 @@ typedef struct {
  *********************************/
 /* INSERT MOVIE */
 static const char *insertMovieArr[] = {"INSERT INTO Movies(Title, Genre, ReleaseYear, Runtime, Plot, Quality, Rating, CommunityRating, AlreadySeen, IsFavourite, ArchiveStr) " \
-                                              "VALUES(:Title, (SELECT ID FROM Genres WHERE Genre = :Genre OR Genre = 'Other'), :Year, :Runtime, " \
+                                              "VALUES(:Title, (SELECT MIN(ID) FROM Genres WHERE Genre = :Genre OR Genre = 'Other'), :Year, :Runtime, " \
                                               ":Plot, (SELECT ID FROM Qualities WHERE Source = :Src), :Rating, :ComRating, :Seen, :Fav, :Archive);", 
                                        "INSERT INTO Directors(Name) VALUES(:RegName);", 
                                        "INSERT INTO directed_movie(MovieID, DirectorID) VALUES((SELECT ID FROM Movies WHERE Title = :Title AND ReleaseYear = :Year), (SELECT ID FROM Directors WHERE Name = :RegName));", 
@@ -115,7 +115,7 @@ static const char *insertMovieArr[] = {"INSERT INTO Movies(Title, Genre, Release
                                        "INSERT INTO acted_in_movie(MovieID, ActorsID) VALUES((SELECT ID FROM Movies WHERE Title = :Title AND ReleaseYear = :Year), (SELECT ID FROM Actors WHERE Name = :ActName));"};
 /* INSERT SERIES */
 static const char *insertSeriesArr[] = {"INSERT INTO Series(Title, Genre, Season, ReleaseYear, Plot, Quality, Rating, CommunityRating, AlreadySeen, isFavourite, ArchiveStr) " \
-                                               "VALUES(:Title, (SELECT ID FROM Genres WHERE Genre = :Genre OR Genre = 'Other'), :Season, " \
+                                               "VALUES(:Title, (SELECT MIN(ID) FROM Genres WHERE Genre = :Genre OR Genre = 'Other'), :Season, " \
                                                ":Year, :Plot, (SELECT ID FROM Qualities WHERE Source = :Src), :Rating, :ComRating, :Seen, :Fav, :Archive);", 
                                           "INSERT INTO Actors(Name) VALUES(:ActName);", 
                                           "INSERT INTO acted_in_series(SeriesID, ActorsID) VALUES((SELECT ID FROM Series WHERE Title = :Title AND Season = :Season), (SELECT ID FROM Actors WHERE Name = :ActName));"};
