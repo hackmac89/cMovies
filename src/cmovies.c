@@ -283,7 +283,7 @@ void freeSeriesContext(ctx_seriesInfo **seriesInfo)
     @param TGenres genre - the enum corresponding to the chosen genre
     @return const char* - the genre string to query the db
 */
-static const char *setGenre(TGenres genre)
+static char *setGenre(TGenres genre)
 {
     switch(genre){
         case TACTION:	return "Action";
