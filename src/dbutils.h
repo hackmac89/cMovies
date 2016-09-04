@@ -32,7 +32,7 @@ static sqlite3 *movieDatabase;   // our database
 static sqlite3_stmt *stmtSqlInsertMovie = NULL;   // sqlite3 statement for inserting movies
 static sqlite3_stmt *stmtSqlInsertSeries = NULL;   // sqlite3 statement for inserting series
 static sqlite3_stmt *stmtSQLUpdate = NULL;   // sqlite3 statement for update stuff
-
+/* our predefined genre types (the corresponding string to insert into the db is done in "cmovies.c --> setGenre") */
 typedef enum {
     TACTION = 1,
     TADVENTURE,
@@ -58,6 +58,23 @@ typedef enum {
     TTRAGICOMEDY,
     TWESTERN
 } TGenres;
+/* our predefined quality types (the corresponding string to insert into the db is done in "cmovies.c --> setQuality") */
+typedef enum {
+    T2K = 1,
+    T4K,
+    TBR,
+    TBRRIP,
+    TCAM,
+    TDVD,
+    TDVDRIP,
+    TDVDSCREENER,
+    TTELESYNC,
+    TTSLD,
+    TTSMD,
+    TTVRIP,
+    TVHS,
+    TWEBRIP
+} TQualities;
 
 // all other statements yet to come...
 static bool isDBOpened = false;   // db flag
@@ -108,7 +125,7 @@ typedef struct {
 /* INSERT MOVIE */
 static const char *insertMovieArr[] = {"INSERT INTO Movies(Title, Genre, ReleaseYear, Runtime, Plot, Quality, Rating, CommunityRating, AlreadySeen, IsFavourite, ArchiveStr) " \
                                               "VALUES(:Title, (SELECT MIN(ID) FROM Genres WHERE Genre = :Genre OR Genre = 'Other'), :Year, :Runtime, " \
-                                              ":Plot, (SELECT ID FROM Qualities WHERE Source = :Src), :Rating, :ComRating, :Seen, :Fav, :Archive);", 
+                                              ":Plot, (SELECT MIN(ID) FROM Qualities WHERE Source = :Src OR Source = 'Other'), :Rating, :ComRating, :Seen, :Fav, :Archive);",
                                        "INSERT INTO Directors(Name) VALUES(:RegName);", 
                                        "INSERT INTO directed_movie(MovieID, DirectorID) VALUES((SELECT ID FROM Movies WHERE Title = :Title AND ReleaseYear = :Year), (SELECT ID FROM Directors WHERE Name = :RegName));", 
                                        "INSERT INTO Actors(Name) VALUES(:ActName);", 
@@ -116,7 +133,7 @@ static const char *insertMovieArr[] = {"INSERT INTO Movies(Title, Genre, Release
 /* INSERT SERIES */
 static const char *insertSeriesArr[] = {"INSERT INTO Series(Title, Genre, Season, ReleaseYear, Plot, Quality, Rating, CommunityRating, AlreadySeen, isFavourite, ArchiveStr) " \
                                                "VALUES(:Title, (SELECT MIN(ID) FROM Genres WHERE Genre = :Genre OR Genre = 'Other'), :Season, " \
-                                               ":Year, :Plot, (SELECT ID FROM Qualities WHERE Source = :Src), :Rating, :ComRating, :Seen, :Fav, :Archive);", 
+                                               ":Year, :Plot, (SELECT MIN(ID) FROM Qualities WHERE Source = :Src OR Source = 'Other'), :Rating, :ComRating, :Seen, :Fav, :Archive);", 
                                           "INSERT INTO Actors(Name) VALUES(:ActName);", 
                                           "INSERT INTO acted_in_series(SeriesID, ActorsID) VALUES((SELECT ID FROM Series WHERE Title = :Title AND Season = :Season), (SELECT ID FROM Actors WHERE Name = :ActName));"};
 /* SELECT BASIC MOVIE RESULT APPEARANCE (FOR ALL MOVIES IN THE DB) */  

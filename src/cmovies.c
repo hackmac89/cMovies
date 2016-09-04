@@ -84,11 +84,11 @@ int main(int argc, char **argv)
                                 */
                                 appendToLog("Adding basic movie informations to the current context");
                                 printf("DEBUG INSERT MOVIE #1\n");
-
+                        
                                 /* Add basic info (e.g. title, plot, release year etc.) about the movie to the context */
                                 if( !(addBasicInfoToMovieContext(&testCase, "Star Wars: Das Erwachen der Macht", setGenre(TSCIENCEFICTION), "02:15:00",
                                     "Mehr als drei Jahrzehnte nach „Star Wars 6 – Die Rückkehr der Jedi-Ritter“ wurde das Imperium durch die „Erste Ordnung“ abgelöst, " \
-                                    "eine ebenfalls diktatorische Organisation mit anderem Namen, die Krieg gegen den Widerstand führt...", "BR-RIP", "HDD", 2015, 0, 8, false, false)) )
+                                    "eine ebenfalls diktatorische Organisation mit anderem Namen, die Krieg gegen den Widerstand führt...", setQuality(TBRRIP), "HDD", 2015, 0, 8, false, false)) )
                                     printError("[!] FEHLER beim eintragen der Basisinformationen. Breche ab...", true);
                                 /* Add director(s) and actor(s) to the movie context */
                                 addDirectorToMovieContext(&testCase, "J. J. Abrams");
@@ -112,7 +112,7 @@ int main(int argc, char **argv)
 
                                 if( !(addBasicInfoToMovieContext(&testCase, "Zoomania", setGenre(TANIMATION), "01:49:00",
                                     "In einer von anthropomorphen Säugetieren bewohnten Welt erfüllt Judy Hopps aus dem ländlichen Dorf Bunnyborrow in Nageria ihren Traum, " \
-                                    "als erster Hase Polizist zu werden...", "BR-RIP", "HDD", 2015, 8, 8, true, true)) )
+                                    "als erster Hase Polizist zu werden...", setQuality(TBRRIP), "HDD", 2015, 8, 8, true, true)) )
                                     printError("[!] FEHLER beim eintragen der Basisinformationen. Breche ab...", true);
                                 /* Add director(s) and actor(s) to the movie context */
                                 addDirectorToMovieContext(&testCase, "Byron Howard");
@@ -283,7 +283,7 @@ void freeSeriesContext(ctx_seriesInfo **seriesInfo)
     @param TGenres genre - the enum corresponding to the chosen genre
     @return const char* - the genre string to query the db
 */
-const char *setGenre(TGenres genre)
+static const char *setGenre(TGenres genre)
 {
     switch(genre){
         case TACTION:	return "Action";
@@ -310,6 +310,33 @@ const char *setGenre(TGenres genre)
         case TTRAGICOMEDY:  return "Tragicomedy";
         case TWESTERN:  return "Western";
         default:	return "Other";
+    }
+}
+
+/*
+ Set the movies´/series´ quality
+ -------------------------------------------------------
+ @param TQualities quality - the enum corresponding to the chosen quality
+ @return const char* - the quality string to query the db
+ */
+static char *setQuality(TQualities quality)
+{
+    switch(quality){
+        case T2K:   return "2K-UHD";
+        case T4K:   return "4K-UHD";
+        case TBR:   return "BR";
+        case TBRRIP:    return "BR-RIP";
+        case TCAM:  return "CAM";
+        case TDVD:  return "DVD";
+        case TDVDRIP:   return "DVD-RIP";
+        case TDVDSCREENER:  return "DVDScreener";
+        case TTELESYNC: return "Telesync";
+        case TTSLD: return "TS-LD";
+        case TTSMD: return "TS-MD";
+        case TTVRIP:    return "TV-RIP";
+        case TVHS:  return "VHS";
+        case TWEBRIP:   return "WEB-RIP";
+        default:    return "Other";
     }
 }
 

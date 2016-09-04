@@ -31,6 +31,7 @@ void freeMovieContext(ctx_movieInfo **);
 void freeSeriesContext(ctx_seriesInfo **);
 /* information-to-database routines */
 static const char *setGenre(TGenres);
+static char *setQuality(TQualities);
 static bool addBasicInfoToMovieContext(ctx_movieInfo **, char *, const char *, char *, char *, char *, char *,
 	unsigned short, unsigned short, unsigned short, bool, bool);
 static void addDirectorToMovieContext(ctx_movieInfo **, char *);
