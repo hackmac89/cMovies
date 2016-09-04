@@ -57,6 +57,7 @@ Alternatively, you can use the included XCode project file if you´re developing
 ### Database structure
 
 ![database layout](./movies_db_layout.jpg)
+
 *Look into the &ldquor;movies.sql&rdquor; file for further information about the layout* 
 
 <div id='code_structure' />
