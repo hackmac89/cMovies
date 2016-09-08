@@ -114,7 +114,7 @@ Alternatively, you can use the included XCode project file if you´re developing
 <div id='changelog' />
 ## 5. Changelog
 
-What´ New ?!
+What´s New ?!
 
 > 09/08/2016:
 >
@@ -123,6 +123,7 @@ What´ New ?!
 >   - Implemented deletion functions
 >   - some minor code changes
 >   - What´s next to come ?
+>
 >         - implement the UPDATE function
 >         - semantics error checks & fixes
 >         - some minor additions (rearrange and add some logging, implement the update functions)
