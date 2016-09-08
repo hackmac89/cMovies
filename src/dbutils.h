@@ -10,7 +10,6 @@ https://github.com/hackmac89/cMovies
 #ifndef DBUTILS_H
 #define DBUTILS_H
 
-// OTHER #1
 typedef int bool;
 #define true 1
 #define false 0
@@ -31,12 +30,14 @@ static sqlite3 *movieDatabase;   // our database
     Given that, i reduce compiler and vdbe overhead. */
 static sqlite3_stmt *stmtSqlInsertMovie = NULL;   // sqlite3 statement for inserting movies
 static sqlite3_stmt *stmtSqlInsertSeries = NULL;   // sqlite3 statement for inserting series
-static sqlite3_stmt *stmtSQLUpdate = NULL;   // sqlite3 statement for update stuff
+static sqlite3_stmt *stmtSqlUpdate = NULL;   // sqlite3 statement for update stuff
+static sqlite3_stmt *stmtSqlDeletion = NULL;   // sqlite3 statement for deletion stuff
 /* our predefined genre types (the corresponding string to insert into the db is done in "cmovies.c --> setGenre") */
 typedef enum {
     TACTION = 1,
     TADVENTURE,
     TANIMATION,
+    TANIME, 
     TCOMEDY,
     TCRIME,
     TDRAMA,
@@ -51,6 +52,7 @@ typedef enum {
     TMELODRAMA,
     TMOCKUMENTARY,
     TMYSTERY,
+    TPORN, 
     TROMANCE,
     TSCIENCEFICTION,
     TSITCOM,
@@ -116,8 +118,8 @@ typedef struct {
 // OTHER #2
 /* count the arguments of the char ** arrays ("ctx_movieInfo" & "ctx_seriesInfo")
    within the movie- and series-context structure. */
-#define COUNTDIRECTORS(x) ( (*x)->cntDirectors )
-#define COUNTACTORS(x) ( (*x)->cntActors )
+#define COUNTDIRECTORS(ctx) ( (*ctx)->cntDirectors )
+#define COUNTACTORS(ctx) ( (*ctx)->cntActors )
 
 /*********************************
  ***   "Prepared Statements"   ***
@@ -134,8 +136,8 @@ static const char *insertMovieArr[] = {"INSERT INTO Movies(Title, Genre, Release
 static const char *insertSeriesArr[] = {"INSERT INTO Series(Title, Genre, Season, ReleaseYear, Plot, Quality, Rating, CommunityRating, AlreadySeen, isFavourite, ArchiveStr) " \
                                                "VALUES(:Title, (SELECT MIN(ID) FROM Genres WHERE Genre = :Genre OR Genre = 'Other'), :Season, " \
                                                ":Year, :Plot, (SELECT MIN(ID) FROM Qualities WHERE Source = :Src OR Source = 'Other'), :Rating, :ComRating, :Seen, :Fav, :Archive);", 
-                                          "INSERT INTO Actors(Name) VALUES(:ActName);", 
-                                          "INSERT INTO acted_in_series(SeriesID, ActorsID) VALUES((SELECT ID FROM Series WHERE Title = :Title AND Season = :Season), (SELECT ID FROM Actors WHERE Name = :ActName));"};
+                                        "INSERT INTO Actors(Name) VALUES(:ActName);", 
+                                        "INSERT INTO acted_in_series(SeriesID, ActorsID) VALUES((SELECT ID FROM Series WHERE Title = :Title AND Season = :Season), (SELECT ID FROM Actors WHERE Name = :ActName));"};
 /* SELECT BASIC MOVIE RESULT APPEARANCE (FOR ALL MOVIES IN THE DB) */  
 static const char *strSelectBasicMovies = "SELECT Movies.Title, Genres.Genre, Movies.releaseYear, Movies.Runtime, Qualities.Source, " \
                                                 "Directors.Name, Movies.Rating, Movies.CommunityRating, Movies.Added, Movies.ArchiveStr FROM Movies " \
@@ -229,17 +231,6 @@ static const char *updateQueriesArr[] = {"UPDATE Movies SET Title = :Title WHERE
                                          "UPDATE Movies SET ArchiveStr = :Archive WHERE ID = :ID;",
                                          "UPDATE Series SET ArchiveStr = :Archive WHERE ID = :ID;"};
 
-/*
-  OPTIONAL
-  --------
-  NOCH EINBAUEN UND TESTEN, DASS MAN EINEN EINTRAG (FILM UND/ODER SERIE) MIT EINEM DERZEIT UNBEKANNTEN GENRE UND/ODER EINER UNBEKANNTEN
-  QUALITÄT EINTRAGEN KANN 
-
-  ODER
-
-  GENRE UND QUALITÄTEN NUR IN EINER ART "COMBOBOX" ZUR AUSWAHL BEREITSTELLEN, SODASS KEINE NEUEN/ANDEREN WERTE HINZUKOMMEN KÖNNEN
-*/
-
 /*****************************************
  ***    other function declarations    ***
  *****************************************/
@@ -252,9 +243,11 @@ static void checkResultCode(int);
 // "void" oder "bool" bei INSERTs ???
 void insertMovie(ctx_movieInfo *);
 void insertSeries(ctx_seriesInfo *);
-//void deleteMovie(...);
-//void deleteSeries(...);
-void updateQuery(char *, char *[]);
+void deleteMovie(/* char * */ unsigned int);
+void deleteSeries(/* char * */ unsigned int);
+static void updateQuery(char *, char *[]);   // general purpose update function
+// the specific functions (they call the general function "updateQuery")
+// "updateMovieTitle", "updateSeriesTitle", "updateMovieGenre" and so on...
 //...
 
 #endif

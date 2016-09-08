@@ -46,7 +46,7 @@ int appendToLog(const char *formatString, ...)
 	if( (logFile = fopen(LOGNAME, "a")) != NULL )
 	{
 		done = vfprintf(logFile, output, vl);   // work the variable arguments list...
-		fclose(logFile);   // free ressources
+		fclose(logFile);   // free resources
 	}
 
 	va_end(vl);

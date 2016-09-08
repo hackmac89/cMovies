@@ -13,7 +13,7 @@ https://github.com/hackmac89/cMovies
 // OTHER
 // DEBUG
 #define DEBUGMODE 
-#define VERSION "20160904"
+#define VERSION "20160908"
 
 // IMPORTS
 #include <assert.h>   // for "assert" within the "free***Context" functions
@@ -39,7 +39,8 @@ static void addActorToMovieContext(ctx_movieInfo **, char *);
 static bool addBasicInfoToSeriesContext(ctx_seriesInfo **, char *, const char *, char *, char *, char *,
 	unsigned short, unsigned short, unsigned short, unsigned short, bool, bool);
 static void addActorToSeriesContext(ctx_seriesInfo **, char *);
-static /*void*/ ctx_movieInfo* reinitializeMovieContext(ctx_movieInfo **);
+static ctx_movieInfo* reinitializeMovieContext(ctx_movieInfo **);
+static ctx_seriesInfo* reinitializeSeriesContext(ctx_seriesInfo **);
 
 //...
 #endif

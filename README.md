@@ -116,6 +116,19 @@ Alternatively, you can use the included XCode project file if you´re developing
 
 What´ New ?!
 
+> 09/08/2016:
+>
+>   - Implemented the remaining functions for series support
+>   - Added 2 new genres
+>   - Implemented deletion functions
+>   - some minor code changes
+>   - What´s next to come ?
+>         - implement the UPDATE function
+>         - semantics error checks & fixes
+>         - some minor additions (rearrange and add some logging, implement the update functions)
+>         - TUI
+>
+>
 > 09/03/2016:
 >
 >   - Initial release

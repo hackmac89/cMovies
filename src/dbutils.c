@@ -1,13 +1,23 @@
 /*
 File: dbutils.c
 Synopsis: implementation of database- and other functions declared in "dbutils.h" (add movie, add series etc. pp.)
+		  There´s not much caution taken to "locks" yet, so the database should only be used with one instance of "cmovies"
+		  to avoid possible deadlocks.
 Author: hackmac89
 E-mail: hackmac89@filmdatenbank-manager.de
 date: 08/23/2016
 https://www.filmdatenbank-manager.de/
 https://github.com/hackmac89/cMovies
 
-TODO : - Die Abfragen statt mit "WHERE NAME = 'DER GENAUE NAME'" lieber mit regul. Ausdrücken und "LIKE" machen.
+TODO :	- overthink possible "transactions" and abortion of insert functions 
+			(e.g. when is it ok to go on inserting if an error occurs and when is it not !?)
+		- given the first TODO, switch to a boolean result value for the insert functions (instead of "void")
+		- implement the remaining SQLITE-result codes in function "checkResultCode"
+		- add more (silent) logging with "appendToLog" 
+		- check "deleteMovie" & "deleteSeries" (don't try to delete the entry if the ID doesn´t even exist)
+		- check if it´s better to use the title instead of the id in the deletion functions ("deleteMovie" & "deleteSeries")
+			==> probably the question becomes obsolete when we´re using a TUI later ;)
+		- PERHAPS instead of using "WHERE NAME = 'THE EXACT NAME'" use regular expressions with "LIKE"
 */ 
 // IMPORTS
 #include "dbutils.h"
@@ -27,8 +37,10 @@ void printError(char *ErrMsg, bool Quit)
         appendToLog("There was an error and the application gets closed now !");
         closePreparedStatements(stmtSqlInsertMovie);
         closePreparedStatements(stmtSqlInsertSeries);
-        closePreparedStatements(stmtSQLUpdate);
-        sqlite3_close(movieDatabase);
+        closePreparedStatements(stmtSqlUpdate);
+        closePreparedStatements(stmtSqlDeletion);
+        //sqlite3_close(movieDatabase);   ==> use our own function wrapper
+        closeDatabase();
         exit(EXIT_FAILURE);
     }
 }
@@ -78,6 +90,9 @@ static int prepareStatementIfNeeded(sqlite3_stmt *stmtSQL, const char *sql)
 /*
 	A function to close all connections (Prepared Statements) before
 	closing the database.
+	--------------------------------------------
+	@param stmtSQL - The statement handle 
+					(stmtSqlInsertMovie, stmtSqlInsertSeries & stmtSqlUpdate) with the stmt to finalize
 */
 void closePreparedStatements(sqlite3_stmt *stmtSQL)
 {
@@ -94,11 +109,68 @@ void closePreparedStatements(sqlite3_stmt *stmtSQL)
 */
 static void checkResultCode(int code)
 {
-	switch(code){
-		case SQLITE_CONSTRAINT : 
+	switch(code){ 
+		case SQLITE_ABORT : break;
+		case SQLITE_ABORT_ROLLBACK : break;
+		case SQLITE_AUTH : break;
+		case SQLITE_BUSY : break;
+		case SQLITE_BUSY_RECOVERY : break;
+		case SQLITE_CANTOPEN : break;
+		case SQLITE_CANTOPEN_ISDIR : break;
+		case SQLITE_CANTOPEN_NOTEMPDIR : break;
+		case SQLITE_CONSTRAINT :
 			printError("[!] An error occured at the INSERT statement (is the entry already in the database ?) : %s.\n", false);   
-			break;   
-		//...
+			break;  
+		case SQLITE_CORRUPT : break;
+		case SQLITE_CORRUPT_VTAB : break;
+		case SQLITE_DONE : break;
+		case SQLITE_EMPTY : break;
+		case SQLITE_ERROR : break;
+		case SQLITE_FORMAT : break;
+		case SQLITE_FULL : break;
+		case SQLITE_INTERNAL : break;
+		case SQLITE_INTERRUPT : break;
+		case SQLITE_IOERR : break;
+		case SQLITE_IOERR_ACCESS : break;
+		case SQLITE_IOERR_BLOCKED : break;
+		case SQLITE_IOERR_CHECKRESERVEDLOCK : break;
+		case SQLITE_IOERR_CLOSE : break;
+		case SQLITE_IOERR_DELETE : break;
+		case SQLITE_IOERR_DIR_CLOSE : break;
+		case SQLITE_IOERR_DIR_FSYNC  : break;
+		case SQLITE_IOERR_FSTAT : break;
+		case SQLITE_IOERR_FSYNC : break;
+		case SQLITE_IOERR_LOCK : break;
+		case SQLITE_IOERR_NOMEM : break;
+		case SQLITE_IOERR_RDLOCK : break;
+		case SQLITE_IOERR_READ : break;
+		case SQLITE_IOERR_SEEK : break;
+		case SQLITE_IOERR_SHMLOCK : break;
+		case SQLITE_IOERR_SHMMAP : break;
+		case SQLITE_IOERR_SHMOPEN : break;
+		case SQLITE_IOERR_SHMSIZE : break;
+		case SQLITE_IOERR_SHORT_READ : break;
+		case SQLITE_IOERR_TRUNCATE : break;
+		case SQLITE_IOERR_UNLOCK : break;
+		case SQLITE_IOERR_WRITE : break;
+		case SQLITE_LOCKED : break;
+		case SQLITE_LOCKED_SHAREDCACHE : break;
+		case SQLITE_MISMATCH : break;
+		case SQLITE_MISUSE : break;
+		case SQLITE_NOLFS : break;
+		case SQLITE_NOMEM : break;
+		case SQLITE_NOTADB : break;
+		case SQLITE_NOTFOUND : break;
+		case SQLITE_OK : break;
+		case SQLITE_PERM : break;
+		case SQLITE_PROTOCOL : break;
+		case SQLITE_RANGE : break;
+		case SQLITE_READONLY : break;
+		case SQLITE_READONLY_CANTLOCK : break;
+		case SQLITE_READONLY_RECOVERY : break;
+		case SQLITE_ROW : break;
+		case SQLITE_SCHEMA : break;
+		case SQLITE_TOOBIG : break;
 		default : // alles derzeit NICHT EXPLIZIT behandelte
 			printError("[!] An error occured at the INSERT statement : %s.\n", false);
 			break;
@@ -128,12 +200,11 @@ void insertMovie(ctx_movieInfo *movieInfo)
 						/*********************************************************************************************
      					 ***************						INSERT MOVIE 						   ***************
 	 					 *********************************************************************************************/
-						//rc = prepareStatementIfNeeded(*(insertMovieArr + i));
      					rc = sqlite3_prepare_v2(movieDatabase, *(insertMovieArr + i), -1, &stmtSqlInsertMovie, 0);
 
 					    if (rc == SQLITE_OK) {
 					        #ifdef DEBUGMODE
-								printf("\t[DEBUG insertMovie #1] Erstelle 1. Eintrag...\n");
+								printf("\t[DEBUG insertMovie #1] Creating 1st entry (table \"Movies\")...\n");
 							#endif
 							// get all indixes
 							if( (idxTitle = sqlite3_bind_parameter_index(stmtSqlInsertMovie, ":Title")) == 0 )
@@ -197,8 +268,8 @@ void insertMovie(ctx_movieInfo *movieInfo)
 					    }
 					    stepVal = sqlite3_step(stmtSqlInsertMovie);
 					    
-					    if (stepVal == SQLITE_ROW) {        
-					        printf("Eintrag #1 erfolgreich !\n"); 
+					    if (stepVal == SQLITE_ROW || stepVal == SQLITE_DONE) {        
+					        printf("Entry #1 successful (table \"Movies\") !\n"); 
 					    }
 						break;
 				}
@@ -214,11 +285,11 @@ void insertMovie(ctx_movieInfo *movieInfo)
 
 							if (rc == SQLITE_OK) {
 								#ifdef DEBUGMODE
-									printf("\t[DEBUG insertMovie #2] Erstelle 2. Eintrag...\n");
+									printf("\t[DEBUG insertMovie #2] Creating 2nd entry (table \"Directors\")...\n");
 								#endif
 								// get all indexes
 								if( (idxDirectors = sqlite3_bind_parameter_index(stmtSqlInsertMovie, ":RegName")) == 0 )
-									printError("[!] FEHLER beim binden von \":RegName\": %s\n", false);
+									printError("[!] ERROR while binding \":RegName\": %s\n", false);
 
 								#ifdef DEBUGMODE
 									printf("\t[DEBUG insertMovie #2] IDX-Directors : %d\n", idxDirectors);
@@ -233,7 +304,7 @@ void insertMovie(ctx_movieInfo *movieInfo)
 								sqlite3_bind_text(stmtSqlInsertMovie, idxDirectors, str, -1, SQLITE_TRANSIENT);
 								// do sql insertion
 								if( (stepVal = sqlite3_step(stmtSqlInsertMovie)) == SQLITE_DONE ){
-					           		printf("Eintrag #2 erfolgreich !\n");
+					           		printf("Entry #2 successful (table \"Directors\") !\n");
 					       		}
 					       		else{
 					           		checkResultCode(stepVal);
@@ -248,20 +319,19 @@ void insertMovie(ctx_movieInfo *movieInfo)
 	 					 *********************************************************************************************/
 	 					for(int j = 0; j < COUNTDIRECTORS(&movieInfo); j++)
 						{
-							//rc = prepareStatementIfNeeded(*(insertMovieArr + i));
 							rc = sqlite3_prepare_v2(movieDatabase, *(insertMovieArr + i), -1, &stmtSqlInsertMovie, 0);
 
 							if (rc == SQLITE_OK) {
 								#ifdef DEBUGMODE
-									printf("\t[DEBUG insertMovie #3] Erstelle 3. Eintrag...\n");
+									printf("\t[DEBUG insertMovie #3] Creating 3rd entry (table \"directed_movie\")...\n");
 								#endif
 								// get all indexes
 								if( (idxTitle = sqlite3_bind_parameter_index(stmtSqlInsertMovie, ":Title")) == 0 )
-									printError("[!] FEHLER beim binden von \":Title\": %s\n", false);
+									printError("[!] ERROR while binding \":Title\": %s\n", false);
 								if( (idxYear = sqlite3_bind_parameter_index(stmtSqlInsertMovie, ":Year")) == 0 )
-									printError("[!] FEHLER beim binden von \":Year\": %s\n", false);
+									printError("[!] ERROR while binding \":Year\": %s\n", false);
 								if( (idxDirectors = sqlite3_bind_parameter_index(stmtSqlInsertMovie, ":RegName")) == 0 )
-									printError("[!] FEHLER beim binden von \":RegName\": %s\n", false);
+									printError("[!] ERROR while binding \":RegName\": %s\n", false);
 
 								#ifdef DEBUGMODE
 									printf("\t[DEBUG insertMovie #3] IDX-Title : %d\n", idxTitle);
@@ -282,7 +352,7 @@ void insertMovie(ctx_movieInfo *movieInfo)
 								sqlite3_bind_text(stmtSqlInsertMovie, idxDirectors, str, -1, SQLITE_TRANSIENT);
 								// do sql insertion
 								if( (stepVal = sqlite3_step(stmtSqlInsertMovie)) == SQLITE_DONE ){
-					           		printf("Eintrag #3 erfolgreich !\n");
+					           		printf("Entry #3 successful (table \"directed_movie\") !\n");
 					       		}
 					       		else{
 					           		checkResultCode(stepVal);
@@ -293,21 +363,20 @@ void insertMovie(ctx_movieInfo *movieInfo)
 				}
 				case 3:	{
 						/*********************************************************************************************
-     					 ***************					INSERT Actors						   ***************
+     					 ***************						INSERT Actors						   ***************
 	 					 *********************************************************************************************/
 						// check if theres more than 1 actor
 					    for(int j = 0; j < COUNTACTORS(&movieInfo); j++)
 						{
-							//rc = prepareStatementIfNeeded(*(insertMovieArr + i));
 							rc = sqlite3_prepare_v2(movieDatabase, *(insertMovieArr + i), -1, &stmtSqlInsertMovie, 0);
 
 							if (rc == SQLITE_OK) {
 								#ifdef DEBUGMODE
-									printf("\t[DEBUG insertMovie #4] Erstelle 4. Eintrag...\n");
+									printf("\t[DEBUG insertMovie #4] Creating 4th entry (table \"Actors\")...\n");
 								#endif
 								// get all indexes
 								if( (idxActors = sqlite3_bind_parameter_index(stmtSqlInsertMovie, ":ActName")) == 0 )
-									printError("[!] FEHLER beim binden von \":ActName\": %s\n", false);
+									printError("[!] ERROR while binding \":ActName\": %s\n", false);
 
 								#ifdef DEBUGMODE
 									printf("\t[DEBUG insertMovie #4] IDX-Actors : %d\n", idxActors);
@@ -322,7 +391,7 @@ void insertMovie(ctx_movieInfo *movieInfo)
 								sqlite3_bind_text(stmtSqlInsertMovie, idxActors, str, -1, SQLITE_TRANSIENT);
 								// do sql insertion
 								if( (stepVal = sqlite3_step(stmtSqlInsertMovie)) == SQLITE_DONE ){
-					           		printf("Eintrag #4 erfolgreich !\n");
+					           		printf("Entry #4 successful (table \"Actors\") !\n");
 					       		}
 					       		else{
 					           		checkResultCode(stepVal);
@@ -333,24 +402,23 @@ void insertMovie(ctx_movieInfo *movieInfo)
 				}
 				case 4:	{
 						/*********************************************************************************************
-     					 ***************							ACTED IN 						   ***************
+     					 ***************							ACTED IN MOVIE					   ***************
 						 *********************************************************************************************/
 						for(int j = 0; j < COUNTACTORS(&movieInfo); j++)
 						{
-							//rc = prepareStatementIfNeeded(*(insertMovieArr + i));
 							rc = sqlite3_prepare_v2(movieDatabase, *(insertMovieArr + i), -1, &stmtSqlInsertMovie, 0);
 
 							if (rc == SQLITE_OK) {
 								#ifdef DEBUGMODE
-									printf("\t[DEBUG insertMovie #5] Erstelle 5. Eintrag...\n");
+									printf("\t[DEBUG insertMovie #5] Creating 5th entry (table \"acted_in_movie\")...\n");
 								#endif
 								// get all indexes
 								if( (idxTitle = sqlite3_bind_parameter_index(stmtSqlInsertMovie, ":Title")) == 0 )
-									printError("[!] FEHLER beim binden von \":Title\": %s\n", false);
+									printError("[!] ERROR while binding \":Title\": %s\n", false);
 								if( (idxYear = sqlite3_bind_parameter_index(stmtSqlInsertMovie, ":Year")) == 0 )
-									printError("[!] FEHLER beim binden von \":Year\": %s\n", false);
+									printError("[!] ERROR while binding \":Year\": %s\n", false);
 								if( (idxActors = sqlite3_bind_parameter_index(stmtSqlInsertMovie, ":ActName")) == 0 )
-									printError("[!] FEHLER beim binden von \":ActName\": %s\n", false);
+									printError("[!] ERROR while binding \":ActName\": %s\n", false);
 
 								#ifdef DEBUGMODE
 									printf("\t[DEBUG insertMovie #5] IDX-Title : %d\n", idxTitle);
@@ -371,7 +439,7 @@ void insertMovie(ctx_movieInfo *movieInfo)
 								sqlite3_bind_text(stmtSqlInsertMovie, idxActors, str, -1, SQLITE_TRANSIENT);
 								// do sql insertion
 								if( (stepVal = sqlite3_step(stmtSqlInsertMovie)) == SQLITE_DONE ){
-					           		printf("Eintrag #5 erfolgreich !\n");
+					           		printf("Entry #5 successful (table \"acted_in_movie\") !\n");
 					       		}
 					       		else{
 					           		checkResultCode(stepVal);
@@ -380,15 +448,14 @@ void insertMovie(ctx_movieInfo *movieInfo)
 						}
 						break;
 				}
-				default:	printError("[!] FEHLER : Index out of Bounds in \"insertMovie #5\"\n", false);	
+				default:	printError("[!] ERROR : Index out of Bounds in function \"insertMovie\"\n", false);	
 			}
 
-			sqlite3_reset(stmtSqlInsertMovie);
+			sqlite3_reset(stmtSqlInsertMovie);   // reset the statement
 		}
 
-		// Free ressources
+		// Free resources
 		free(str);	
-		//closePreparedStatements();
 	}
 }
 
@@ -399,9 +466,282 @@ void insertMovie(ctx_movieInfo *movieInfo)
 */
 void insertSeries(ctx_seriesInfo *seriesInfo)
 {
-	//;
-	// uninitialize sql statement (call "prepareStatementIfNeeded" before you use it again)
-	stmtSqlInsertSeries = NULL;
+	int idxTitle = 0, idxGenre = 0, idxSeason = 0, idxYear = 0, idxPlot = 0, idxSourceQuality = 0, 
+    	idxMyRating = 0, idxCommunityRating = 0, idxSeen, idxFavourite, idxArchived = 0, idxActors = 0, stepVal = 0, rc; 
+	char *str = malloc(sizeof(char *) * 32768);   // temporary string with sufficient space (e.g. for "plot")
+
+	if(isDBOpened)
+	{
+		// loop through the sql insert statements in "insertSeriesArr"
+		for(int i = 0; i <= (sizeof(insertSeriesArr) / sizeof(char *)) - 1; i++)
+		{
+			switch(i)
+			{
+				case 0:	{
+						/*********************************************************************************************
+     					 ***************						INSERT SERIES 						   ***************
+	 					 *********************************************************************************************/
+	 					rc = sqlite3_prepare_v2(movieDatabase, *(insertSeriesArr + i), -1, &stmtSqlInsertSeries, 0);
+	    
+						if (rc == SQLITE_OK) {
+							#ifdef DEBUGMODE
+								printf("\t[DEBUG insertSeries #1] Creating 1st entry (table \"Series\")...\n");
+							#endif
+							// get all indixes
+							if( (idxTitle = sqlite3_bind_parameter_index(stmtSqlInsertSeries, ":Title")) == 0 )
+								printError("[!] BINDING-ERROR (Title) in \"insertSeries #1\": %s\n", false);
+							if( (idxGenre = sqlite3_bind_parameter_index(stmtSqlInsertSeries, ":Genre")) == 0 )
+								printError("[!] BINDING-ERROR (Genre) in \"insertSeries #1\": %s\n", false);
+							if( (idxSeason = sqlite3_bind_parameter_index(stmtSqlInsertSeries, ":Season")) == 0 )
+								printError("[!] BINDING-ERROR (Season) in \"insertSeries #1\": %s\n", false);
+							if( (idxYear = sqlite3_bind_parameter_index(stmtSqlInsertSeries, ":Year")) == 0 )
+								printError("[!] BINDING-ERROR (Year) in \"insertSeries #1\": %s\n", false);
+							if( (idxPlot = sqlite3_bind_parameter_index(stmtSqlInsertSeries, ":Plot")) == 0 )
+								printError("[!] BINDING-ERROR (Plot) in \"insertSeries #1\": %s\n", false);
+							if( (idxSourceQuality = sqlite3_bind_parameter_index(stmtSqlInsertSeries, ":Src")) == 0 )
+								printError("[!] BINDING-ERROR (Src) in \"insertSeries #1\": %s\n", false);
+							if( (idxMyRating = sqlite3_bind_parameter_index(stmtSqlInsertSeries, ":Rating")) == 0 )
+								printError("[!] BINDING-ERROR (Rating) in \"insertSeries #1\": %s\n", false);
+							if( (idxCommunityRating = sqlite3_bind_parameter_index(stmtSqlInsertSeries, ":ComRating")) == 0 )
+								printError("[!] BINDING-ERROR (ComRating) in \"insertSeries #1\": %s\n", false);
+							if( (idxSeen = sqlite3_bind_parameter_index(stmtSqlInsertSeries, ":Seen")) == 0 )
+								printError("[!] BINDING-ERROR (AlreadySeen) in \"insertSeries #1\": %s\n", false);
+							if( (idxFavourite = sqlite3_bind_parameter_index(stmtSqlInsertSeries, ":Fav")) == 0 )
+								printError("[!] BINDING-ERROR (IsFavourite) in \"insertSeries #1\": %s\n", false);
+							if( (idxArchived = sqlite3_bind_parameter_index(stmtSqlInsertSeries, ":Archive")) == 0 )
+								printError("[!] BINDING-ERROR (Archive) in \"insertSeries #1\": %s\n", false);       
+
+							// bind values to indexes
+							if( snprintf(str, strlen(seriesInfo->title) + 1, "%s", seriesInfo->title) )
+								sqlite3_bind_text(stmtSqlInsertSeries, idxTitle, str, -1, SQLITE_TRANSIENT);
+							if( snprintf(str, strlen(seriesInfo->genre) + 1, "%s", seriesInfo->genre) )
+								sqlite3_bind_text(stmtSqlInsertSeries, idxGenre, str, -1, SQLITE_TRANSIENT);
+							if( snprintf(str, strlen(seriesInfo->plot) + 1, "%s", seriesInfo->plot) )
+								sqlite3_bind_text(stmtSqlInsertSeries, idxPlot, str, -1, SQLITE_TRANSIENT);
+							if( snprintf(str, strlen(seriesInfo->sourceQuality) + 1, "%s", seriesInfo->sourceQuality) )
+								sqlite3_bind_text(stmtSqlInsertSeries, idxSourceQuality, str, -1, SQLITE_TRANSIENT);
+							if( snprintf(str, strlen(seriesInfo->archived) + 1, "%s", seriesInfo->archived) )
+								sqlite3_bind_text(stmtSqlInsertSeries, idxArchived, str, -1, SQLITE_TRANSIENT);
+							sqlite3_bind_int(stmtSqlInsertSeries, idxSeason, seriesInfo->season);
+							sqlite3_bind_int(stmtSqlInsertSeries, idxYear, seriesInfo->year);
+							sqlite3_bind_int(stmtSqlInsertSeries, idxMyRating, seriesInfo->myRating);
+							sqlite3_bind_int(stmtSqlInsertSeries, idxCommunityRating, seriesInfo->communityRating);
+							sqlite3_bind_int(stmtSqlInsertSeries, idxSeen, seriesInfo->alreadySeen);
+							sqlite3_bind_int(stmtSqlInsertSeries, idxFavourite, seriesInfo->isFavourite);
+		                	                  
+							#ifdef DEBUGMODE
+								printf("\t[DEBUG insertSeries #1] IDX-Title : %d\n", idxTitle);
+								printf("\t[DEBUG insertSeries #1] IDX-Genre : %d\n", idxGenre);
+								printf("\t[DEBUG insertSeries #1] IDX-Season : %d\n", idxSeason);
+								printf("\t[DEBUG insertSeries #1] IDX-Year : %d\n", idxYear);
+								printf("\t[DEBUG insertSeries #1] IDX-Plot : %d\n", idxPlot);
+								printf("\t[DEBUG insertSeries #1] IDX-SourceQuality : %d\n", idxSourceQuality);
+								printf("\t[DEBUG insertSeries #1] IDX-MyRating : %d\n", idxMyRating);
+								printf("\t[DEBUG insertSeries #1] IDX-CommunityRating : %d\n", idxCommunityRating);
+								printf("\t[DEBUG insertSeries #1] IDX-Seen : %d\n", idxSeen);
+								printf("\t[DEBUG insertSeries #1] IDX-Favourite : %d\n", idxFavourite);
+								printf("\t[DEBUG insertSeries #1] IDX-Archived : %d\n", idxArchived);
+								printf("\t[*] %s\n", sqlite3_sql(stmtSqlInsertSeries));
+							#endif 
+						} else {
+							fprintf(stderr, "Failed to execute statement: %s\n", sqlite3_errmsg(movieDatabase));
+						}
+
+						stepVal = sqlite3_step(stmtSqlInsertSeries);
+	            
+						if (stepVal == SQLITE_ROW || stepVal == SQLITE_DONE) {        
+							printf("Entry #1 successful (table \"Series\") !\n"); 
+						}
+						break;
+				}
+				case 1:	{
+						/*********************************************************************************************
+     					 ***************						INSERT ACTORS						   ***************
+	 					 *********************************************************************************************/
+						// check if theres more than 1 actor
+						for(int j = 0; j < COUNTACTORS(&seriesInfo); j++)
+						{
+							rc = sqlite3_prepare_v2(movieDatabase, *(insertSeriesArr + i), -1, &stmtSqlInsertSeries, 0);
+
+							if (rc == SQLITE_OK) {
+								#ifdef DEBUGMODE
+									printf("\t[DEBUG insertSeries #2] Creating 2nd entry (table \"Actors\")...\n");
+								#endif
+								// get all indexes
+								if( (idxActors = sqlite3_bind_parameter_index(stmtSqlInsertSeries, ":ActName")) == 0 )
+									printError("[!] ERROR while binding \":ActName\": %s\n", false);
+
+								#ifdef DEBUGMODE
+									printf("\t[DEBUG insertSeries #2] IDX-Actors : %d\n", idxActors);
+	 								printf("\t[*] %s\n", sqlite3_sql(stmtSqlInsertSeries));
+								#endif
+							} else {
+								fprintf(stderr, "Failed to execute statement: %s\n", sqlite3_errmsg(movieDatabase));
+							}
+
+							if( snprintf(str, strlen((*(seriesInfo->actors + j))) + 1, "%s", (*(seriesInfo->actors + j))) )
+							{
+								sqlite3_bind_text(stmtSqlInsertSeries, idxActors, str, -1, SQLITE_TRANSIENT);
+								// do sql insertion
+								if( (stepVal = sqlite3_step(stmtSqlInsertSeries)) == SQLITE_DONE ){
+									printf("Entry #2 successful (table \"Actors\") !\n");
+								}
+								else{
+									checkResultCode(stepVal);
+								} 
+							}
+						}
+						break;
+				}
+				case 2:	{
+						/*********************************************************************************************
+     					 ***************						ACTED IN SERIES 					   ***************
+						 *********************************************************************************************/
+						for(int j = 0; j < COUNTACTORS(&seriesInfo); j++)
+						{
+							rc = sqlite3_prepare_v2(movieDatabase, *(insertSeriesArr + i), -1, &stmtSqlInsertSeries, 0);
+
+							if (rc == SQLITE_OK) {
+								#ifdef DEBUGMODE
+									printf("\t[DEBUG insertSeries #3] Creating 3rd entry (table \"acted_in_series\")...\n");
+								#endif
+								// get all indexes
+								if( (idxTitle = sqlite3_bind_parameter_index(stmtSqlInsertSeries, ":Title")) == 0 )
+									printError("[!] ERROR while binding \":Title\": %s\n", false);
+								if( (idxSeason = sqlite3_bind_parameter_index(stmtSqlInsertSeries, ":Season")) == 0 )
+									printError("[!] ERROR while binding \":Season\": %s\n", false);
+								if( (idxActors = sqlite3_bind_parameter_index(stmtSqlInsertSeries, ":ActName")) == 0 )
+									printError("[!] ERROR while binding \":ActName\": %s\n", false);
+
+								#ifdef DEBUGMODE
+									printf("\t[DEBUG insertSeries #3] IDX-Title : %d\n", idxTitle);
+									printf("\t[DEBUG insertSeries #3] IDX-Season : %d\n", idxSeason);
+									printf("\t[DEBUG insertSeries #3] IDX-Actors : %d\n", idxActors);
+									printf("\t[*] %s\n", sqlite3_sql(stmtSqlInsertSeries));
+								#endif
+							} else {
+								fprintf(stderr, "Failed to execute statement: %s\n", sqlite3_errmsg(movieDatabase));
+							}
+
+							if( snprintf(str, strlen(seriesInfo->title) + 1, "%s", seriesInfo->title) )
+								sqlite3_bind_text(stmtSqlInsertSeries, idxTitle, str, -1, SQLITE_TRANSIENT);
+							sqlite3_bind_int(stmtSqlInsertSeries, idxSeason, seriesInfo->season);
+
+							if( snprintf(str, strlen((*(seriesInfo->actors + j))) + 1, "%s", (*(seriesInfo->actors + j))) )
+							{
+								sqlite3_bind_text(stmtSqlInsertSeries, idxActors, str, -1, SQLITE_TRANSIENT);
+								// do sql insertion
+								if( (stepVal = sqlite3_step(stmtSqlInsertSeries)) == SQLITE_DONE ){
+									printf("Entry #3 successful (table \"acted_in_series\") !\n");
+								}
+								else{
+									checkResultCode(stepVal);
+								} 
+							}
+						}
+						break;
+				}
+				default:	printError("[!] ERROR : Index out of Bounds in function \"insertSeries\"\n", false);	
+			}
+
+			sqlite3_reset(stmtSqlInsertSeries);   // reset the statement
+		}
+
+		// Free resources
+		free(str);
+	}
+}
+
+/*
+	Remove a movie from the database
+	(CAUTION: 
+		THE ACTORS AND DIRECTORS TABLES REMAIN UNTOUCHED
+		FOR FURTHER INSERTION. ONLY THE ENTRIES INSIDE
+		THE "MOVIES"-, "DIRECTED_MOVIE"-, and "ACTED_IN_MOVIE"-TABLES ARE REMOVED)
+	--------------------------------
+	@param char *title - the title to remove (at the moment, i am using the "id" instead of the title !!!)
+	@param unsigned int id - the id of the corresponding movie
+*/
+void deleteMovie(/*char *title*/ unsigned int movieID)
+{
+	// declarations / initializations
+    int idxMovie = -1, stepVal, rc;
+
+	if( movieID >= 1 )
+	{
+		printf("[+] Deleting movie with ID \"%d\".\n", movieID);
+		sqlite3_exec(movieDatabase, "BEGIN", 0, 0, 0);   // begin transaction
+
+		rc = sqlite3_prepare_v2(movieDatabase, strDeleteMovie, -1, &stmtSqlDeletion, 0);
+
+		if (rc == SQLITE_OK) {
+			printf("\tGetting index to delete...\n");
+			if( (idxMovie = sqlite3_bind_parameter_index(stmtSqlDeletion, ":movieID")) == 0 )
+				printError("[!] ERROR in \"deleteMovie\": %s\n", false);
+			#ifdef DEBUGMODE
+				printf("\t[DEBUG] IDX-Movie : %d\n", idxMovie);
+			#endif
+			sqlite3_bind_int(stmtSqlDeletion, idxMovie, movieID);
+		} else {
+			fprintf(stderr, "[!] ERROR : Unable to execute the deletion: %s\n", sqlite3_errmsg(movieDatabase));
+		}
+
+		if( (stepVal = sqlite3_step(stmtSqlDeletion)) == SQLITE_DONE )
+			printf("Deletion successful.\n");
+		else
+			checkResultCode(stepVal);
+
+		sqlite3_exec(movieDatabase, "COMMIT", 0, 0, 0);   // Transaktion beenden
+	}
+
+	sqlite3_reset(stmtSqlDeletion);   // reset the statement
+	return;
+}
+
+/*
+	Remove a series from the database
+	(CAUTION: 
+		THE ACTORS TABLES REMAINS UNTOUCHED
+		FOR FURTHER INSERTION. ONLY THE ENTRIES INSIDE
+		THE "SERIES"-, and "ACTED_IN_SERIES"-TABLES ARE REMOVED)
+	--------------------------------
+	@param char *title - the title to remove (at the moment, i am using the "id" instead of the title !!!)
+	@param unsigned int id - the id of the corresponding series
+*/
+void deleteSeries(/*char *title*/ unsigned int seriesID)
+{
+	// declarations / initializations
+    int idxSeries = -1, stepVal, rc;
+
+	if( seriesID >= 1 )
+	{
+		printf("[+] Deleting series with ID \"%d\".\n", seriesID);
+		sqlite3_exec(movieDatabase, "BEGIN", 0, 0, 0);   // begin transaction 
+
+		rc = sqlite3_prepare_v2(movieDatabase, strDeleteSeries, -1, &stmtSqlDeletion, 0);
+
+		if (rc == SQLITE_OK) {
+			printf("\tGetting index to delete...\n");
+			if( (idxSeries = sqlite3_bind_parameter_index(stmtSqlDeletion, ":seriesID")) == 0 )
+				printError("[!] ERROR in \"deleteSeries\": %s\n", false);
+			#ifdef DEBUGMODE
+				printf("\t[DEBUG] IDX-Series : %d\n", idxSeries);
+			#endif
+			sqlite3_bind_int(stmtSqlDeletion, idxSeries, seriesID);
+		} else {
+			fprintf(stderr, "[!] ERROR : Unable to execute the deletion: %s\n", sqlite3_errmsg(movieDatabase));
+		}
+
+		if( (stepVal = sqlite3_step(stmtSqlDeletion)) == SQLITE_DONE )
+			printf("Deletion successful.\n");
+		else
+			checkResultCode(stepVal);
+
+		sqlite3_exec(movieDatabase, "COMMIT", 0, 0, 0);   // end transaction
+	}
+
+	sqlite3_reset(stmtSqlDeletion);
+	return;
 }
 
 /* 
@@ -410,11 +750,10 @@ void insertSeries(ctx_seriesInfo *seriesInfo)
 	@param char *queryString - the desired update query within the "updateQueriesArr"-array
 	@param *bindings[] - array with the correct parameters to bind to the particular query
 */
-void updateQuery(char *queryString, char *bindings[])
+static void updateQuery(char *queryString, char *bindings[])
 {
 	//;
-	// uninitialize sql statement (call "prepareStatementIfNeeded" before you use it again)
-	stmtSQLUpdate = NULL;
+	sqlite3_reset(stmtSqlUpdate);   // reset the statement
 }
 
 //...

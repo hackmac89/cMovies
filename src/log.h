@@ -18,7 +18,7 @@ https://github.com/hackmac89/cMovies
 #include <stdarg.h>   // to use variable function arguments list
 
 /*********************
- ***   CONSTANTS   ***
+ ***    LOGFILE    ***
  *********************/
 #define LOGNAME "cmovies.log"   // the filename of our logfile
 /************************

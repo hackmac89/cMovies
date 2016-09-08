@@ -30,14 +30,15 @@ SOFTWARE.
 #include "cmovies.h"
 
 // for testing purposes
-ctx_movieInfo *testCase;
+ctx_movieInfo *testCaseMovie;
+ctx_seriesInfo *testCaseSeries;
 
 /*
     Main Function / Program Entry Point
 */
 int main(int argc, char **argv)
 {
-	printf("\t\t__--//cMovies [v.%s] BETA\\\\--__\n\n", VERSION);
+	printf("\t\t__--//cMovies [v.%s] ALPHA\\\\--__\n\n", VERSION);
 
 	appendToLog("cMovies[v.%s] was started", VERSION);
     appendToLog("Opening the \"cMovies\" database");
@@ -49,9 +50,10 @@ int main(int argc, char **argv)
     else
     {
         appendToLog("Database successfully opened");
-        appendToLog("Creating the movies context");
 
-        testCase = initMovieContext();
+        // initialize our test-case contexts
+        testCaseMovie = initMovieContext();
+        testCaseSeries = initSeriesContext();
 
         /*
              -----------------------------------
@@ -61,18 +63,21 @@ int main(int argc, char **argv)
             |   2 = INSERT MOVIE #2             |
             |   3 = INSERT SERIES #1            |
             |   4 = INSERT SERIES #2            |
+            |   5 = DELETE MOVIE                |
+            |   6 = DELETE SERIES               |
+            |   7 = (UPDATE DB)                 |
             |   q = QUIT                        |
             |                                   |
              -----------------------------------
         */
-        printf(" ----------------------------------- \n|\t\tAuswahl\t\t    |\n|-----------------------------------|\n" \
+        printf(" ----------------------------------- \n|\t   Choose wisely\t    |\n|-----------------------------------|\n" \
             "|\t1 = INSERT MOVIE #1\t    |\n|\t2 = INSERT MOVIE #2\t    |\n|\t3 = INSERT SERIES #1\t    |\n" \
-            "|\t4 = INSERT SERIES #2\t    |\n|\tq = QUIT\t\t    |\n|\t\t\t\t    |\n ----------------------------------- \n");
+            "|\t4 = INSERT SERIES #2\t    |\n|\t5 = DELETE MOVIE\t    |\n|\t6 = DELETE SERIES\t    |\n|\tq = QUIT\t\t    |\n|\t\t\t\t    |\n ----------------------------------- \n");
     
         int choice = -1;
         do
         {              
-            if(choice != '\n')   // Besonderheit bei dieser Implementierung von "getchar", falls es mich weiterhin stört, zu "scanf" oder anderem wechseln
+            if(choice != '\n')
             {
                 switch(choice)
                 {
@@ -83,24 +88,24 @@ int main(int argc, char **argv)
                                     Insert movie #1
                                 */
                                 appendToLog("Adding basic movie informations to the current context");
-                                printf("DEBUG INSERT MOVIE #1\n");
+                                printf("DEBUG INSERT MOVIE #1 (Star Wars)\n");
                         
                                 /* Add basic info (e.g. title, plot, release year etc.) about the movie to the context */
-                                if( !(addBasicInfoToMovieContext(&testCase, "Star Wars: Das Erwachen der Macht", setGenre(TSCIENCEFICTION), "02:15:00",
+                                if( !(addBasicInfoToMovieContext(&testCaseMovie, "Star Wars: Das Erwachen der Macht", setGenre(TSCIENCEFICTION), "02:15:00",
                                     "Mehr als drei Jahrzehnte nach „Star Wars 6 – Die Rückkehr der Jedi-Ritter“ wurde das Imperium durch die „Erste Ordnung“ abgelöst, " \
                                     "eine ebenfalls diktatorische Organisation mit anderem Namen, die Krieg gegen den Widerstand führt...", setQuality(TBRRIP), "HDD", 2015, 0, 8, false, false)) )
-                                    printError("[!] FEHLER beim eintragen der Basisinformationen. Breche ab...", true);
+                                        printError("[!] ERROR while inserting the basic informations into the movie context. Aborting...", true);
                                 /* Add director(s) and actor(s) to the movie context */
-                                addDirectorToMovieContext(&testCase, "J. J. Abrams");
-                                addActorToMovieContext(&testCase, "Daisy Ridley");
+                                addDirectorToMovieContext(&testCaseMovie, "J. J. Abrams");
+                                addActorToMovieContext(&testCaseMovie, "Daisy Ridley");
 
-                                insertMovie(testCase);
+                                insertMovie(testCaseMovie);
     
                                 // call the "reinitialization" function to free the current context and to create a new one
-                                testCase = reinitializeMovieContext(&testCase);
+                                testCaseMovie = reinitializeMovieContext(&testCaseMovie);
                                 printf("D0N3 !\n");
                                 break;
-                            }
+                    }
                     case '2' : {
                                 /* 
                                     TEST-CASE #2:
@@ -108,66 +113,138 @@ int main(int argc, char **argv)
                                     Insert movie #2
                                 */
                                 appendToLog("Adding basic movie informations to the current context");
-                                printf("DEBUG INSERT MOVIE #2\n");
+                                printf("DEBUG INSERT MOVIE #2 (Zoomania)\n");
 
-                                if( !(addBasicInfoToMovieContext(&testCase, "Zoomania", setGenre(TANIMATION), "01:49:00",
+                                if( !(addBasicInfoToMovieContext(&testCaseMovie, "Zoomania", setGenre(TANIMATION), "01:49:00",
                                     "In einer von anthropomorphen Säugetieren bewohnten Welt erfüllt Judy Hopps aus dem ländlichen Dorf Bunnyborrow in Nageria ihren Traum, " \
                                     "als erster Hase Polizist zu werden...", setQuality(TBRRIP), "HDD", 2015, 8, 8, true, true)) )
-                                    printError("[!] FEHLER beim eintragen der Basisinformationen. Breche ab...", true);
+                                        printError("[!] ERROR while inserting the basic informations into the movie context. Aborting...", true);
                                 /* Add director(s) and actor(s) to the movie context */
-                                addDirectorToMovieContext(&testCase, "Byron Howard");
-                                addDirectorToMovieContext(&testCase, "Rich Moore");
-                                addActorToMovieContext(&testCase, "Ginnifer Goodwin");
-                                addActorToMovieContext(&testCase, "Jason Bateman");
-                                addActorToMovieContext(&testCase, "Idris Elba");
-                                addActorToMovieContext(&testCase, "Jenny Slate");
-                                addActorToMovieContext(&testCase, "Nate Torrence");
-                                addActorToMovieContext(&testCase, "Bonnie Hunt");
-                                addActorToMovieContext(&testCase, "Don Lake");
-                                addActorToMovieContext(&testCase, "Tommy Chong");
-                                addActorToMovieContext(&testCase, "J. K. Simmons");
-                                addActorToMovieContext(&testCase, "Alan Tudyk");
+                                addDirectorToMovieContext(&testCaseMovie, "Byron Howard");
+                                addDirectorToMovieContext(&testCaseMovie, "Rich Moore");
+                                addActorToMovieContext(&testCaseMovie, "Ginnifer Goodwin");
+                                addActorToMovieContext(&testCaseMovie, "Jason Bateman");
+                                addActorToMovieContext(&testCaseMovie, "Idris Elba");
+                                addActorToMovieContext(&testCaseMovie, "Jenny Slate");
+                                addActorToMovieContext(&testCaseMovie, "Nate Torrence");
+                                addActorToMovieContext(&testCaseMovie, "Bonnie Hunt");
+                                addActorToMovieContext(&testCaseMovie, "Don Lake");
+                                addActorToMovieContext(&testCaseMovie, "Tommy Chong");
+                                addActorToMovieContext(&testCaseMovie, "J. K. Simmons");
+                                addActorToMovieContext(&testCaseMovie, "Alan Tudyk");
 
-                                insertMovie(testCase);
+                                insertMovie(testCaseMovie);
     
                                 // call the "reinitialization" function to free the current context and to create a new one
-                                testCase = reinitializeMovieContext(&testCase);
+                                testCaseMovie = reinitializeMovieContext(&testCaseMovie);
                                 printf("D0N3 !\n");
                                 break;
-                            }
+                    }
                     case '3' : {
                                 /* 
                                     TEST-CASE #3:
                                     ------------
                                     Insert a series #1
                                 */
-                                //...
+                                appendToLog("Adding basic series informations to the current context");
+                                printf("DEBUG INSERT SERIES #1 (The Big Bang Theory)\n");
+
+                                /* Add basic info (e.g. title, plot, release year etc.) about the series to the context */
+                                if( !(addBasicInfoToSeriesContext(&testCaseSeries, "The Big Bang Theory", "Sitcom",
+                                    "Die Serie handelt von den hochintelligenten jungen Physikern Leonard Hofstadter und Sheldon Cooper, deren WG gegenüber der Wohnung der hübschen Kellnerin Penny liegt. " \
+                                    "Dabei wird die geekhafte Art der beiden Wissenschaftler durch die Naivität, aber auch die Sozialkompetenz bzw. den gesunden Menschenverstand der Nachbarin, einer klischeehaften Blondine, kontrastiert",
+                                    "DVD-RIP", "DVD0xM0x", 1, 2007, 9, 9, true, true)) )
+                                        printError("[!] ERROR while inserting the basic informations into the series context. Aborting...", true);
+                                /* Add actor(s) to the series context */
+                                addActorToSeriesContext(&testCaseSeries, "Johnny Galecki");
+                                addActorToSeriesContext(&testCaseSeries, "Jim Parsons");
+                                addActorToSeriesContext(&testCaseSeries, "Kaley Cuoco");
+                                addActorToSeriesContext(&testCaseSeries, "Simon Helberg");
+                                addActorToSeriesContext(&testCaseSeries, "Kunal Nayyar");
+                                addActorToSeriesContext(&testCaseSeries, "Sara Gilbert");
+                                addActorToSeriesContext(&testCaseSeries, "Melissa Rauch");
+                                addActorToSeriesContext(&testCaseSeries, "Mayim Bialik");
+                                addActorToSeriesContext(&testCaseSeries, "Kevin Sussman");
+                                addActorToSeriesContext(&testCaseSeries, "Laura Spencer");
+
+                                insertSeries(testCaseSeries);
+
+                                testCaseSeries = reinitializeSeriesContext(&testCaseSeries);
+                                printf("D0N3 !\n");
                                 break;
-                            }
+                    }
                     case '4' : {
                                 /* 
                                     TEST-CASE #4:
                                     ------------
                                     Insert a series #2
                                 */
-                                //...
+                                appendToLog("Adding basic series informations to the current context");
+                                printf("DEBUG INSERT SERIES #2 (The King of Queens)\n");
+
+                                /* Add basic info (e.g. title, plot, release year etc.) about the series to the context */
+                                if( !(addBasicInfoToSeriesContext(&testCaseSeries, "The King of Queens", "Sitcom",
+                                    "Die Serie handelt von Douglas Heffernan, einem übergewichtigen Kurierfahrer aus dem New Yorker Stadtteil Queens und seiner Frau Carrie, einer Rechtsanwaltsgehilfin in Manhattan...",
+                                    "DVD-RIP", "DVD0xM0x", 1, 1998, 9, 9, true, true)) )
+                                        printError("[!] FEHLER beim eintragen der Basisinformationen. Breche ab...", true);
+                                /* Add actor(s) to the series context */
+                                addActorToSeriesContext(&testCaseSeries, "Kevin James");
+                                addActorToSeriesContext(&testCaseSeries, "Leah Remini");
+                                addActorToSeriesContext(&testCaseSeries, "Jerry Stiller");
+                                addActorToSeriesContext(&testCaseSeries, "Victor Williams");
+                                addActorToSeriesContext(&testCaseSeries, "Patton Oswalt");
+                                addActorToSeriesContext(&testCaseSeries, "Gary Valentine");
+
+                                insertSeries(testCaseSeries);
+
+                                testCaseSeries = reinitializeSeriesContext(&testCaseSeries);
+                                printf("D0N3 !\n");
                                 break;
-                            }
+                    }
+                    case '5' : {
+                                /*
+                                    TEST-CASE #5:
+                                    ------------
+                                    Delete the first movie (just as an example)
+                                */
+                                appendToLog("Deleting movie with ID 1");
+                                printf("DEBUG DELETE MOVIE\n");
+
+                                deleteMovie(1);
+                                printf("D0N3 !\n");
+                                break;
+                    }
+                    case '6' : {
+                                /*
+                                    TEST-CASE #6:
+                                    ------------
+                                    Delete the second series (just as an example)
+                                */
+                                appendToLog("Deleting series with ID 2");
+                                printf("DEBUG DELETE SERIES\n");
+
+                                deleteSeries(2);
+                                printf("D0N3 !\n");
+                                break;
+                    }
                     default : break;
                 }   
             }
             fflush(stdin);
         }
-        while(toupper(choice = getchar()) != 'Q' /*&& choice != EOF && choice != '\n'*/);
+        while(toupper(choice = getchar()) != 'Q');
 
         appendToLog("Freeing the movie context");
-        freeMovieContext(&testCase);
+        freeMovieContext(&testCaseMovie);
+        appendToLog("Freeing the series context");
+        freeSeriesContext(&testCaseSeries);
 
         appendToLog("Closing the database connection(s)");
         
         closePreparedStatements(stmtSqlInsertMovie);
         closePreparedStatements(stmtSqlInsertSeries);
-        closePreparedStatements(stmtSQLUpdate);
+        closePreparedStatements(stmtSqlUpdate);
+        closePreparedStatements(stmtSqlDeletion);
         if( !closeDatabase() )
             printError("[!] ERROR : Unable to properly close the \"movies.db\" database !\n", true);
         else
@@ -186,6 +263,7 @@ int main(int argc, char **argv)
 */
 ctx_movieInfo* initMovieContext(void)
 {
+    appendToLog("Creating the movies context");
     ctx_movieInfo *movieInfo = malloc(sizeof(ctx_movieInfo));
     movieInfo->title = malloc(sizeof(char *) * 101);
     movieInfo->genre = malloc(sizeof(char *) * 51);   // frei Schnauze
@@ -216,6 +294,7 @@ ctx_movieInfo* initMovieContext(void)
 */
 ctx_seriesInfo* initSeriesContext(void)
 {
+    appendToLog("Creating the series context");
     ctx_seriesInfo *seriesInfo = malloc(sizeof(ctx_seriesInfo));
     seriesInfo->title = malloc(sizeof(char *) * 101);
     seriesInfo->genre = malloc(sizeof(char *) * 51);   // frei Schnauze
@@ -289,6 +368,7 @@ static char *setGenre(TGenres genre)
         case TACTION:	return "Action";
         case TADVENTURE:	return "Adventure";
         case TANIMATION:	return "Animation";
+        case TANIME:    return "Anime";
         case TCOMEDY:   return "Comedy";
         case TCRIME:    return "Crime";
         case TDRAMA:    return "Drama";
@@ -303,6 +383,7 @@ static char *setGenre(TGenres genre)
         case TMELODRAMA:    return "Melodrama";
         case TMOCKUMENTARY: return "Mockumentary";
         case TMYSTERY:  return "Mystery";
+        case TPORN: return "Porn"; 
         case TROMANCE:  return "Romance";
         case TSCIENCEFICTION:   return "Science-Fiction";
         case TSITCOM:   return "Sitcom";
@@ -387,7 +468,7 @@ static bool addBasicInfoToMovieContext(ctx_movieInfo **movieInfo, char *title, c
 */
 static void addDirectorToMovieContext(ctx_movieInfo **movieInfo, char *director)
 {
-    appendToLog("Adding the director to the current series context");
+    appendToLog("Adding the director \"%s\" to the current movie context", director);
     if( *movieInfo != NULL ){
         if( (*movieInfo)->cntDirectors < 2 ){
             strncpy((*movieInfo)->directors[(*movieInfo)->cntDirectors], director, strlen(director) + 1);
@@ -404,7 +485,7 @@ static void addDirectorToMovieContext(ctx_movieInfo **movieInfo, char *director)
 */
 static void addActorToMovieContext(ctx_movieInfo **movieInfo, char *actor)
 {
-    appendToLog("Adding the actor to the current movies context");
+    appendToLog("Adding the actor \"%s\" to the current movies context", actor);
     if( *movieInfo != NULL ){
         if( (*movieInfo)->cntActors < 10 ){
             strncpy((*movieInfo)->actors[(*movieInfo)->cntActors], actor, strlen(actor) + 1);
@@ -460,7 +541,7 @@ static bool addBasicInfoToSeriesContext(ctx_seriesInfo **seriesInfo, char *title
 */
 static void addActorToSeriesContext(ctx_seriesInfo **seriesInfo, char *actor)
 {
-    appendToLog("Adding the actor to the current series context");
+    appendToLog("Adding the actor \"%s\" to the current series context", actor);
     if( (*seriesInfo)->cntActors < 10 ){
         strncpy((*seriesInfo)->actors[(*seriesInfo)->cntActors], actor, strlen(actor) + 1);
         (*seriesInfo)->cntActors++;
@@ -475,10 +556,24 @@ static void addActorToSeriesContext(ctx_seriesInfo **seriesInfo, char *actor)
     @param ctx_movieInfo **movieInfo - The current movie context to free
     @return ctx_movieInfo* - After freeing the old context, return a newly created
 */
-static /*void*/ ctx_movieInfo* reinitializeMovieContext(ctx_movieInfo **movieInfo)
+static ctx_movieInfo* reinitializeMovieContext(ctx_movieInfo **movieInfo)
 {
-    appendToLog("Reinitialize the movie context");
+    appendToLog("Reinitialize the movie context for further usage");
     freeMovieContext(movieInfo);
     return initMovieContext();
-    //testCase = initMovieContext();
+}
+
+/*
+    A function to "reinitialize" a series context.
+    Basically all it does is to free the resources of the old context and 
+    then creating a new series context.
+    -------------------------------------------------------
+    @param ctx_seriesInfo **seriesInfo - The current series context to free
+    @return ctx_seriesInfo* - After freeing the old context, return a newly created
+*/
+static ctx_seriesInfo* reinitializeSeriesContext(ctx_seriesInfo **seriesInfo)
+{
+    appendToLog("Reinitialize the series context for further usage");
+    freeSeriesContext(seriesInfo);
+    return initSeriesContext();
 }
