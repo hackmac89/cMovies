@@ -183,24 +183,24 @@ static const char *strSelectActorsOfSeries = "SELECT Actors.Name FROM Series " \
                                              "INNER JOIN acted_in_series, Actors ON (Series.ID = acted_in_series.SeriesID) AND (acted_in_series.ActorsID = Actors.ID) " \
                                              "WHERE Series.Title LIKE :Title;";
 /* SELECT ALL ALREADY SEEN MOVIES */
-const static char *strSelectSeenMovies = "SELECT Movies.Title FROM Movies WHERE Movies.AlreadySeen = 1;";
+static const char *strSelectSeenMovies = "SELECT Movies.Title FROM Movies WHERE Movies.AlreadySeen = 1;";
 /* SELECT ALL FAVOURITE MOVIES */
-const static char *strSelectFavouriteMovies = "SELECT Movies.Title FROM Movies WHERE Movies.IsFavourite = 1;";   
+static const char *strSelectFavouriteMovies = "SELECT Movies.Title FROM Movies WHERE Movies.IsFavourite = 1;";   
 /* SELECT ALL ALREADY SEEN SERIES */
-const static char *strSelectSeenSeries = "SELECT Series.Title, Series.Season FROM Series WHERE Series.AlreadySeen = 1;";
+static const char *strSelectSeenSeries = "SELECT Series.Title, Series.Season FROM Series WHERE Series.AlreadySeen = 1;";
 /* SELECT ALL FAVOURITE SERIES */
-const static char *strSelectFavouriteSeries = "SELECT Series.Title, Series.Season FROM Series WHERE Series.IsFavourite = 1;";
+static const char *strSelectFavouriteSeries = "SELECT Series.Title, Series.Season FROM Series WHERE Series.IsFavourite = 1;";
 /* SELECT ALL CURRENTLY UNSEEN MOVIES */
-const static char *strSelectUnseenMovies = "SELECT Movies.Title FROM Movies WHERE Movies.AlreadySeen = 0;";         
+static const char *strSelectUnseenMovies = "SELECT Movies.Title FROM Movies WHERE Movies.AlreadySeen = 0;";         
 /* SELECT ALL CURRENTLY UNSEEN SERIES */
-const static char *strSelectUnseenSeries = "SELECT Series.Title, Series.Season FROM Series WHERE Series.AlreadySeen = 0;";               
+static const char *strSelectUnseenSeries = "SELECT Series.Title, Series.Season FROM Series WHERE Series.AlreadySeen = 0;";               
 /* DELETION STUFF */
 /* DELETE MOVIE (directors and actors entries remain untouched) --> the trigger takes care of the deletion of dependencies */
-const static char *strDeleteMovie = "DELETE FROM Movies WHERE ID = :movieID;";   
+static const char *strDeleteMovie = "DELETE FROM Movies WHERE ID = :movieID;";   
 /* DELETE SERIES (actors entries remain untouched) --> the trigger takes care of the deletion of dependencies */
-const static char *strDeleteSeries = "DELETE FROM Series WHERE ID = :seriesID;";       
+static const char *strDeleteSeries = "DELETE FROM Series WHERE ID = :seriesID;";       
 /* DELETE ALL (RESET TO RELEASE-DATABASE) */
-const static char *strResetDatabase[] = {"DELETE FROM acted_in_movie;", 
+static const char *strResetDatabase[] = {"DELETE FROM acted_in_movie;", 
                                          "DELETE FROM acted_in_series;",
                                          "DELETE FROM Actors;", 
                                          "DELETE FROM directed_movie;", 
@@ -248,6 +248,28 @@ void deleteSeries(/* char * */ unsigned int);
 static void updateQuery(char *, char *[]);   // general purpose update function
 // the specific functions (they call the general function "updateQuery")
 // "updateMovieTitle", "updateSeriesTitle", "updateMovieGenre" and so on...
+// "void" oder "bool" ?
+void updateMovieTitle(unsigned int, char *);
+void updateSeriesTitle(unsigned int, char *);
+void updateMovieGenre(unsigned int, TGenres);
+void updateSeriesGenre(unsigned int, TGenres);
+void updateMovieReleaseYear(unsigned int, unsigned short);
+void updateSeriesSeason(unsigned int, unsigned short);
+void updateMovieRuntime(unsigned int, const char *);
+void updateSeriesReleaseYear(unsigned int, unsigned short);
+void updateMovieQuality(unsigned int, TQualities);
+void updateSeriesQuality(unsigned int, TQualities);
+void updateMovieRating(unsigned int, unsigned short);
+void updateSeriesRating(unsigned int, unsigned short);
+void updateMovieCommunityRating(unsigned int, unsigned short);
+void updateSeriesCommunityRating(unsigned int, unsigned short);
+void updateMovieAlreadySeen(unsigned int, bool);
+void updateSeriesAlreadySeen(unsigned int, bool);
+void updateMovieIsFavourite(unsigned int, bool);
+void updateSeriesIsFavourite(unsigned int, bool);
+void updateMovieArchive(unsigned int, const char *);
+void updateSeriesArchive(unsigned int, const char *);
+
 //...
 
 #endif

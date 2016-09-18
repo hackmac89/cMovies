@@ -756,4 +756,245 @@ static void updateQuery(char *queryString, char *bindings[])
 	sqlite3_reset(stmtSqlUpdate);   // reset the statement
 }
 
+/**
+	...
+	------------------------------
+	...
+*/
+void updateMovieTitle(unsigned int movieID, char *title)
+{
+	//...
+
+	return;
+}
+
+/**
+	...
+	------------------------------
+	...
+*/
+void updateSeriesTitle(unsigned int seriesID, char *title)
+{
+	//...
+
+	return;
+}
+
+/**
+	...
+	------------------------------
+	...
+*/
+void updateMovieGenre(unsigned int movieID, TGenres genre)
+{
+	//...
+
+	return;
+}
+
+/**
+	...
+	------------------------------
+	...
+*/
+void updateSeriesGenre(unsigned int seriesID, TGenres genre)
+{
+	//...
+
+	return;
+}
+
+/**
+	...
+	------------------------------
+	...
+*/
+void updateMovieReleaseYear(unsigned int movieID, unsigned short year)
+{
+	//...
+
+	return;
+}
+
+/**
+	...
+	------------------------------
+	...
+*/
+void updateSeriesSeason(unsigned int seriesID, unsigned short season)
+{
+	//...
+
+	return;
+}
+
+/**
+	...
+	------------------------------
+	...
+*/
+void updateMovieRuntime(unsigned int movieID, const char *runtime)
+{
+	//...
+
+	return;
+}
+
+/**
+	...
+	------------------------------
+	...
+*/
+void updateSeriesReleaseYear(unsigned int seriesID, unsigned short year)
+{
+	//...
+
+	return;
+}
+
+/**
+	...
+	------------------------------
+	...
+*/
+void updateMovieQuality(unsigned int movieID, TQualities quality)
+{
+	//...
+
+	return;
+}
+
+/**
+	...
+	------------------------------
+	...
+*/
+void updateSeriesQuality(unsigned int seriesID, TQualities quality)
+{
+	//...
+
+	return;
+}
+
+/**
+	...
+	------------------------------
+	...
+*/
+void updateMovieRating(unsigned int movieID, unsigned short rating)
+{
+	//...
+
+	return;
+}
+
+/**
+	...
+	------------------------------
+	...
+*/
+void updateSeriesRating(unsigned int seriesID, unsigned short rating)
+{
+	//...
+
+	return;
+}
+
+/**
+	...
+	------------------------------
+	...
+*/
+void updateMovieCommunityRating(unsigned int movieID, unsigned short communityRating)
+{
+	//...
+
+	return;
+}
+
+/**
+	...
+	------------------------------
+	...
+*/
+void updateSeriesCommunityRating(unsigned int seriesID, unsigned short communityRating)
+{
+	//...
+
+	return;
+}
+
+/**
+	...
+	------------------------------
+	...
+*/
+void updateMovieAlreadySeen(unsigned int movieID, bool alreadySeen)
+{
+	//...
+
+	return;
+}
+
+/**
+	...
+	------------------------------
+	...
+*/
+void updateSeriesAlreadySeen(unsigned int seriesID, bool alreadySeen)
+{
+	//...
+
+	return;
+}
+
+/**
+	...
+	------------------------------
+	...
+*/
+void updateMovieIsFavourite(unsigned int movieID, bool isFavourite)
+{
+	//...
+
+	return;
+}
+
+/**
+	...
+	------------------------------
+	...
+*/
+void updateSeriesIsFavourite(unsigned int seriesID, bool isFavourite)
+{
+	//...
+
+	return;
+}
+
+/**
+	...
+	------------------------------
+	...
+*/
+void updateMovieArchive(unsigned int movieID, const char *archived)
+{
+	//...
+
+	return;
+}
+
+/**
+	...
+	------------------------------
+	...
+*/
+void updateSeriesArchive(unsigned int seriesID, const char *archived)
+{
+	//...
+
+	return;
+}
+
+
 //...

@@ -116,6 +116,11 @@ Alternatively, you can use the included XCode project file if you´re developing
 
 What´s New ?!
 
+> 09/18/2016:
+>
+>   - Prepared the implementation for the resuming update functions
+>
+>
 > 09/08/2016:
 >
 >   - Implemented the remaining functions for series support
@@ -125,7 +130,7 @@ What´s New ?!
 >   - What´s next to come ?
 >
 >         - implement the UPDATE function
->         - semantics error checks & fixes
+>         - semantics error checks &amp; fixes
 >         - some minor additions (rearrange and add some logging, implement the update functions)
 >         - TUI
 >
