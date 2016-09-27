@@ -3,7 +3,7 @@ File: dbutils.h
 Synopsis: header with sql queries & function prototypes
 Author: hackmac89
 E-mail: hackmac89@filmdatenbank-manager.de
-date: 08/23/2016
+date: 09/27/2016
 https://www.filmdatenbank-manager.de/
 https://github.com/hackmac89/cMovies
 */
@@ -115,7 +115,6 @@ typedef struct {
   unsigned short cntActors;
 } ctx_seriesInfo;   // our series context (needed for "insertSeries"-function)
 
-// OTHER #2
 /* count the arguments of the char ** arrays ("ctx_movieInfo" & "ctx_seriesInfo")
    within the movie- and series-context structure. */
 #define COUNTDIRECTORS(ctx) ( (*ctx)->cntDirectors )
@@ -240,6 +239,7 @@ bool closeDatabase();
 static int prepareStatementIfNeeded(sqlite3_stmt *, const char *);   // IF the statement is not used yet, prepare it...
 void closePreparedStatements(sqlite3_stmt *);
 static void checkResultCode(int);
+static void bind_param_index(sqlite3_stmt *, int *, char *);
 // "void" oder "bool" bei INSERTs ???
 void insertMovie(ctx_movieInfo *);
 void insertSeries(ctx_seriesInfo *);

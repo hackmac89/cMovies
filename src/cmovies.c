@@ -3,7 +3,7 @@ File: cmovies.c
 Synopsis: main application code (entry point)
 Author: hackmac89
 E-mail: hackmac89@filmdatenbank-manager.de
-date: 08/23/2016
+date: 09/27/2016
 https://www.filmdatenbank-manager.de/
 https://github.com/hackmac89/cMovies
 

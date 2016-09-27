@@ -5,7 +5,7 @@ Synopsis: implementation of database- and other functions declared in "dbutils.h
 		  to avoid possible deadlocks.
 Author: hackmac89
 E-mail: hackmac89@filmdatenbank-manager.de
-date: 08/23/2016
+date: 09/27/2016
 https://www.filmdatenbank-manager.de/
 https://github.com/hackmac89/cMovies
 
@@ -119,7 +119,7 @@ static void checkResultCode(int code)
 		case SQLITE_CANTOPEN_ISDIR : break;
 		case SQLITE_CANTOPEN_NOTEMPDIR : break;
 		case SQLITE_CONSTRAINT :
-			printError("[!] An error occured at the INSERT statement (is the entry already in the database ?) : %s.\n", false);   
+			printError("[!] [SQLITE3_CONSTRAINT] An error occured at the INSERT statement (is the entry already in the database ?) : %s.\n", false);
 			break;  
 		case SQLITE_CORRUPT : break;
 		case SQLITE_CORRUPT_VTAB : break;
@@ -177,6 +177,20 @@ static void checkResultCode(int code)
 	}
 }
 
+/*
+	Bind the given parameter 
+    to the given index.
+	--------------------------------------
+	@param sqlite3_stmt *stmt - pointer to the sqlite3 statement
+    @param int *idx - pointer to the index on which to bind
+    @param char *param - the prepared stmt placeholder (e.g. ":title")
+*/
+static void bind_param_index(sqlite3_stmt *stmt, int *idx, char *param)
+{
+    if( (*idx = sqlite3_bind_parameter_index(stmt, param)) == 0 )
+        printError("[!] BINDING-ERROR: %s\n", false);
+}
+
 /* 
 	Add a new movie to the database
 	-------------------------------
@@ -207,28 +221,17 @@ void insertMovie(ctx_movieInfo *movieInfo)
 								printf("\t[DEBUG insertMovie #1] Creating 1st entry (table \"Movies\")...\n");
 							#endif
 							// get all indixes
-							if( (idxTitle = sqlite3_bind_parameter_index(stmtSqlInsertMovie, ":Title")) == 0 )
-								printError("[!] BINDING-ERROR (Title) in \"insertMovie #1\": %s\n", false);
-							if( (idxGenre = sqlite3_bind_parameter_index(stmtSqlInsertMovie, ":Genre")) == 0 )
-								printError("[!] BINDING-ERROR (Genre) in \"insertMovie #1\": %s\n", false);
-							if( (idxRuntime = sqlite3_bind_parameter_index(stmtSqlInsertMovie, ":Runtime")) == 0 )
-								printError("[!] BINDING-ERROR (Runtime) in \"insertMovie #1\": %s\n", false);
-							if( (idxPlot = sqlite3_bind_parameter_index(stmtSqlInsertMovie, ":Plot")) == 0 )
-								printError("[!] BINDING-ERROR (Plot) in \"insertMovie #1\": %s\n", false);
-							if( (idxSourceQuality = sqlite3_bind_parameter_index(stmtSqlInsertMovie, ":Src")) == 0 )
-								printError("[!] BINDING-ERROR (Src) in \"insertMovie #1\": %s\n", false);
-							if( (idxArchived = sqlite3_bind_parameter_index(stmtSqlInsertMovie, ":Archive")) == 0 )
-								printError("[!] BINDING-ERROR (Archive) in \"insertMovie #1\": %s\n", false);
-							if( (idxYear = sqlite3_bind_parameter_index(stmtSqlInsertMovie, ":Year")) == 0 )
-								printError("[!] BINDING-ERROR (Year) in \"insertMovie #1\": %s\n", false);
-							if( (idxMyRating = sqlite3_bind_parameter_index(stmtSqlInsertMovie, ":Rating")) == 0 )
-								printError("[!] BINDING-ERROR (Rating) in \"insertMovie #1\": %s\n", false);
-							if( (idxCommunityRating = sqlite3_bind_parameter_index(stmtSqlInsertMovie, ":ComRating")) == 0 )
-								printError("[!] BINDING-ERROR (ComRating) in \"insertMovie #1\": %s\n", false);
-							if( (idxSeen = sqlite3_bind_parameter_index(stmtSqlInsertMovie, ":Seen")) == 0 )
-								printError("[!] BINDING-ERROR (AlreadySeen) in \"insertMovie #1\": %s\n", false);
-							if( (idxFavourite = sqlite3_bind_parameter_index(stmtSqlInsertMovie, ":Fav")) == 0 )
-								printError("[!] BINDING-ERROR (IsFavourite) in \"insertMovie #1\": %s\n", false);
+                            bind_param_index(stmtSqlInsertMovie, &idxTitle, ":Title");
+                            bind_param_index(stmtSqlInsertMovie, &idxGenre, ":Genre");
+                            bind_param_index(stmtSqlInsertMovie, &idxRuntime, ":Runtime");
+                            bind_param_index(stmtSqlInsertMovie, &idxPlot, ":Plot");
+                            bind_param_index(stmtSqlInsertMovie, &idxSourceQuality, ":Src");
+                            bind_param_index(stmtSqlInsertMovie, &idxArchived, ":Archive");
+                            bind_param_index(stmtSqlInsertMovie, &idxYear, ":Year");
+                            bind_param_index(stmtSqlInsertMovie, &idxMyRating, ":Rating");
+                            bind_param_index(stmtSqlInsertMovie, &idxCommunityRating, ":ComRating");
+                            bind_param_index(stmtSqlInsertMovie, &idxSeen, ":Seen");
+                            bind_param_index(stmtSqlInsertMovie, &idxFavourite, ":Fav");
 
 							// bind values to indexes
 							if( snprintf(str, strlen(movieInfo->title) + 1, "%s", movieInfo->title) )
@@ -288,8 +291,7 @@ void insertMovie(ctx_movieInfo *movieInfo)
 									printf("\t[DEBUG insertMovie #2] Creating 2nd entry (table \"Directors\")...\n");
 								#endif
 								// get all indexes
-								if( (idxDirectors = sqlite3_bind_parameter_index(stmtSqlInsertMovie, ":RegName")) == 0 )
-									printError("[!] ERROR while binding \":RegName\": %s\n", false);
+                                bind_param_index(stmtSqlInsertMovie, &idxDirectors, ":RegName");
 
 								#ifdef DEBUGMODE
 									printf("\t[DEBUG insertMovie #2] IDX-Directors : %d\n", idxDirectors);
@@ -326,12 +328,9 @@ void insertMovie(ctx_movieInfo *movieInfo)
 									printf("\t[DEBUG insertMovie #3] Creating 3rd entry (table \"directed_movie\")...\n");
 								#endif
 								// get all indexes
-								if( (idxTitle = sqlite3_bind_parameter_index(stmtSqlInsertMovie, ":Title")) == 0 )
-									printError("[!] ERROR while binding \":Title\": %s\n", false);
-								if( (idxYear = sqlite3_bind_parameter_index(stmtSqlInsertMovie, ":Year")) == 0 )
-									printError("[!] ERROR while binding \":Year\": %s\n", false);
-								if( (idxDirectors = sqlite3_bind_parameter_index(stmtSqlInsertMovie, ":RegName")) == 0 )
-									printError("[!] ERROR while binding \":RegName\": %s\n", false);
+                                bind_param_index(stmtSqlInsertMovie, &idxTitle, ":Title");
+                                bind_param_index(stmtSqlInsertMovie, &idxYear, ":Year");
+                                bind_param_index(stmtSqlInsertMovie, &idxDirectors, ":RegName");
 
 								#ifdef DEBUGMODE
 									printf("\t[DEBUG insertMovie #3] IDX-Title : %d\n", idxTitle);
@@ -375,8 +374,7 @@ void insertMovie(ctx_movieInfo *movieInfo)
 									printf("\t[DEBUG insertMovie #4] Creating 4th entry (table \"Actors\")...\n");
 								#endif
 								// get all indexes
-								if( (idxActors = sqlite3_bind_parameter_index(stmtSqlInsertMovie, ":ActName")) == 0 )
-									printError("[!] ERROR while binding \":ActName\": %s\n", false);
+                                bind_param_index(stmtSqlInsertMovie, &idxActors, ":ActName");
 
 								#ifdef DEBUGMODE
 									printf("\t[DEBUG insertMovie #4] IDX-Actors : %d\n", idxActors);
@@ -413,12 +411,9 @@ void insertMovie(ctx_movieInfo *movieInfo)
 									printf("\t[DEBUG insertMovie #5] Creating 5th entry (table \"acted_in_movie\")...\n");
 								#endif
 								// get all indexes
-								if( (idxTitle = sqlite3_bind_parameter_index(stmtSqlInsertMovie, ":Title")) == 0 )
-									printError("[!] ERROR while binding \":Title\": %s\n", false);
-								if( (idxYear = sqlite3_bind_parameter_index(stmtSqlInsertMovie, ":Year")) == 0 )
-									printError("[!] ERROR while binding \":Year\": %s\n", false);
-								if( (idxActors = sqlite3_bind_parameter_index(stmtSqlInsertMovie, ":ActName")) == 0 )
-									printError("[!] ERROR while binding \":ActName\": %s\n", false);
+                                bind_param_index(stmtSqlInsertMovie, &idxTitle, ":Title");
+                                bind_param_index(stmtSqlInsertMovie, &idxYear, ":Year");
+                                bind_param_index(stmtSqlInsertMovie, &idxActors, ":ActName");
 
 								#ifdef DEBUGMODE
 									printf("\t[DEBUG insertMovie #5] IDX-Title : %d\n", idxTitle);
@@ -488,28 +483,17 @@ void insertSeries(ctx_seriesInfo *seriesInfo)
 								printf("\t[DEBUG insertSeries #1] Creating 1st entry (table \"Series\")...\n");
 							#endif
 							// get all indixes
-							if( (idxTitle = sqlite3_bind_parameter_index(stmtSqlInsertSeries, ":Title")) == 0 )
-								printError("[!] BINDING-ERROR (Title) in \"insertSeries #1\": %s\n", false);
-							if( (idxGenre = sqlite3_bind_parameter_index(stmtSqlInsertSeries, ":Genre")) == 0 )
-								printError("[!] BINDING-ERROR (Genre) in \"insertSeries #1\": %s\n", false);
-							if( (idxSeason = sqlite3_bind_parameter_index(stmtSqlInsertSeries, ":Season")) == 0 )
-								printError("[!] BINDING-ERROR (Season) in \"insertSeries #1\": %s\n", false);
-							if( (idxYear = sqlite3_bind_parameter_index(stmtSqlInsertSeries, ":Year")) == 0 )
-								printError("[!] BINDING-ERROR (Year) in \"insertSeries #1\": %s\n", false);
-							if( (idxPlot = sqlite3_bind_parameter_index(stmtSqlInsertSeries, ":Plot")) == 0 )
-								printError("[!] BINDING-ERROR (Plot) in \"insertSeries #1\": %s\n", false);
-							if( (idxSourceQuality = sqlite3_bind_parameter_index(stmtSqlInsertSeries, ":Src")) == 0 )
-								printError("[!] BINDING-ERROR (Src) in \"insertSeries #1\": %s\n", false);
-							if( (idxMyRating = sqlite3_bind_parameter_index(stmtSqlInsertSeries, ":Rating")) == 0 )
-								printError("[!] BINDING-ERROR (Rating) in \"insertSeries #1\": %s\n", false);
-							if( (idxCommunityRating = sqlite3_bind_parameter_index(stmtSqlInsertSeries, ":ComRating")) == 0 )
-								printError("[!] BINDING-ERROR (ComRating) in \"insertSeries #1\": %s\n", false);
-							if( (idxSeen = sqlite3_bind_parameter_index(stmtSqlInsertSeries, ":Seen")) == 0 )
-								printError("[!] BINDING-ERROR (AlreadySeen) in \"insertSeries #1\": %s\n", false);
-							if( (idxFavourite = sqlite3_bind_parameter_index(stmtSqlInsertSeries, ":Fav")) == 0 )
-								printError("[!] BINDING-ERROR (IsFavourite) in \"insertSeries #1\": %s\n", false);
-							if( (idxArchived = sqlite3_bind_parameter_index(stmtSqlInsertSeries, ":Archive")) == 0 )
-								printError("[!] BINDING-ERROR (Archive) in \"insertSeries #1\": %s\n", false);       
+                            bind_param_index(stmtSqlInsertSeries, &idxTitle, ":Title");
+                            bind_param_index(stmtSqlInsertSeries, &idxGenre, ":Genre");
+                            bind_param_index(stmtSqlInsertSeries, &idxSeason, ":Season");
+                            bind_param_index(stmtSqlInsertSeries, &idxYear, ":Year");
+                            bind_param_index(stmtSqlInsertSeries, &idxPlot, ":Plot");
+                            bind_param_index(stmtSqlInsertSeries, &idxSourceQuality, ":Src");
+                            bind_param_index(stmtSqlInsertSeries, &idxMyRating, ":Rating");
+                            bind_param_index(stmtSqlInsertSeries, &idxCommunityRating, ":ComRating");
+                            bind_param_index(stmtSqlInsertSeries, &idxSeen, ":Seen");
+                            bind_param_index(stmtSqlInsertSeries, &idxFavourite, ":Fav");
+                            bind_param_index(stmtSqlInsertSeries, &idxArchived, ":Archive");
 
 							// bind values to indexes
 							if( snprintf(str, strlen(seriesInfo->title) + 1, "%s", seriesInfo->title) )
@@ -568,8 +552,7 @@ void insertSeries(ctx_seriesInfo *seriesInfo)
 									printf("\t[DEBUG insertSeries #2] Creating 2nd entry (table \"Actors\")...\n");
 								#endif
 								// get all indexes
-								if( (idxActors = sqlite3_bind_parameter_index(stmtSqlInsertSeries, ":ActName")) == 0 )
-									printError("[!] ERROR while binding \":ActName\": %s\n", false);
+                                bind_param_index(stmtSqlInsertSeries, &idxActors, ":ActName");
 
 								#ifdef DEBUGMODE
 									printf("\t[DEBUG insertSeries #2] IDX-Actors : %d\n", idxActors);
@@ -606,12 +589,9 @@ void insertSeries(ctx_seriesInfo *seriesInfo)
 									printf("\t[DEBUG insertSeries #3] Creating 3rd entry (table \"acted_in_series\")...\n");
 								#endif
 								// get all indexes
-								if( (idxTitle = sqlite3_bind_parameter_index(stmtSqlInsertSeries, ":Title")) == 0 )
-									printError("[!] ERROR while binding \":Title\": %s\n", false);
-								if( (idxSeason = sqlite3_bind_parameter_index(stmtSqlInsertSeries, ":Season")) == 0 )
-									printError("[!] ERROR while binding \":Season\": %s\n", false);
-								if( (idxActors = sqlite3_bind_parameter_index(stmtSqlInsertSeries, ":ActName")) == 0 )
-									printError("[!] ERROR while binding \":ActName\": %s\n", false);
+                                bind_param_index(stmtSqlInsertSeries, &idxTitle, ":Title");
+                                bind_param_index(stmtSqlInsertSeries, &idxSeason, ":Season");
+                                bind_param_index(stmtSqlInsertSeries, &idxActors, ":ActName");
 
 								#ifdef DEBUGMODE
 									printf("\t[DEBUG insertSeries #3] IDX-Title : %d\n", idxTitle);
@@ -676,8 +656,7 @@ void deleteMovie(/*char *title*/ unsigned int movieID)
 
 		if (rc == SQLITE_OK) {
 			printf("\tGetting index to delete...\n");
-			if( (idxMovie = sqlite3_bind_parameter_index(stmtSqlDeletion, ":movieID")) == 0 )
-				printError("[!] ERROR in \"deleteMovie\": %s\n", false);
+            bind_param_index(stmtSqlDeletion, &idxMovie, ":movieID");
 			#ifdef DEBUGMODE
 				printf("\t[DEBUG] IDX-Movie : %d\n", idxMovie);
 			#endif
@@ -722,8 +701,7 @@ void deleteSeries(/*char *title*/ unsigned int seriesID)
 
 		if (rc == SQLITE_OK) {
 			printf("\tGetting index to delete...\n");
-			if( (idxSeries = sqlite3_bind_parameter_index(stmtSqlDeletion, ":seriesID")) == 0 )
-				printError("[!] ERROR in \"deleteSeries\": %s\n", false);
+            bind_param_index(stmtSqlDeletion, &idxSeries, ":seriesID");
 			#ifdef DEBUGMODE
 				printf("\t[DEBUG] IDX-Series : %d\n", idxSeries);
 			#endif
