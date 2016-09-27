@@ -236,16 +236,12 @@ static const char *updateQueriesArr[] = {"UPDATE Movies SET Title = :Title WHERE
 void printError(char *, bool);
 bool openDatabase();
 bool closeDatabase();
-static int prepareStatementIfNeeded(sqlite3_stmt *, const char *);   // IF the statement is not used yet, prepare it...
 void closePreparedStatements(sqlite3_stmt *);
-static void checkResultCode(int);
-static void bind_param_index(sqlite3_stmt *, int *, char *);
 // "void" oder "bool" bei INSERTs ???
 void insertMovie(ctx_movieInfo *);
 void insertSeries(ctx_seriesInfo *);
 void deleteMovie(/* char * */ unsigned int);
 void deleteSeries(/* char * */ unsigned int);
-static void updateQuery(char *, char *[]);   // general purpose update function
 // the specific functions (they call the general function "updateQuery")
 // "updateMovieTitle", "updateSeriesTitle", "updateMovieGenre" and so on...
 // "void" oder "bool" ?

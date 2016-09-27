@@ -23,6 +23,12 @@ TODO :	- overthink possible "transactions" and abortion of insert functions
 #include "dbutils.h"
 #include "log.h"
 
+// static function prototypes
+static int prepareStatementIfNeeded(sqlite3_stmt *, const char *);   // IF the statement is not used yet, prepare it...
+static void checkResultCode(int);
+static void bind_param_index(sqlite3_stmt *, int *, char *);
+static void updateQuery(char *, char *[]);   // general purpose update function
+
 /*
  Method to indicate an error and an optional program termination (gets used by the other modules too)
  ----------------------------------------------------------------
