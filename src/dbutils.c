@@ -27,7 +27,7 @@ TODO :	- overthink possible "transactions" and abortion of insert functions
 static int prepareStatementIfNeeded(sqlite3_stmt *, const char *);   // IF the statement is not used yet, prepare it...
 static void checkResultCode(int);
 static void bind_param_index(sqlite3_stmt *, int *, char *);
-static void updateQuery(char *, char *[]);   // general purpose update function
+//static void updateQuery(char *, char *[]);   // general purpose update function
 
 /*
  Method to indicate an error and an optional program termination (gets used by the other modules too)
@@ -729,21 +729,26 @@ void deleteSeries(/*char *title*/ unsigned int seriesID)
 }
 
 /* 
+	A general purpose update functions which handles all possibilities 
+	is possible, but not that user friendly.
+
 	Update entries in the database
 	------------------------------
 	@param char *queryString - the desired update query within the "updateQueriesArr"-array
 	@param *bindings[] - array with the correct parameters to bind to the particular query
-*/
+
 static void updateQuery(char *queryString, char *bindings[])
 {
 	//;
 	sqlite3_reset(stmtSqlUpdate);   // reset the statement
 }
+*/
 
 /**
-	...
-	------------------------------
-	...
+	Update the title of a given movie
+	---------------------------------
+	@param unsigned int movieID - the movies´ ID in table "Movies"
+	@param char *title - the new title to set
 */
 void updateMovieTitle(unsigned int movieID, char *title)
 {
@@ -753,9 +758,10 @@ void updateMovieTitle(unsigned int movieID, char *title)
 }
 
 /**
-	...
-	------------------------------
-	...
+	Update the title of a given series
+	----------------------------------
+	@param unsigned int seriesID - the series´ ID in table "Series"
+	@param char *title - the new title to set
 */
 void updateSeriesTitle(unsigned int seriesID, char *title)
 {
@@ -765,9 +771,10 @@ void updateSeriesTitle(unsigned int seriesID, char *title)
 }
 
 /**
-	...
-	------------------------------
-	...
+	Update the genre of a given movie
+	---------------------------------
+	@param unsigned int movieID - the movies´ ID in table "Movies"
+	@param TGenres genre - the new genre to set
 */
 void updateMovieGenre(unsigned int movieID, TGenres genre)
 {
@@ -777,9 +784,10 @@ void updateMovieGenre(unsigned int movieID, TGenres genre)
 }
 
 /**
-	...
-	------------------------------
-	...
+	Update the genre of a given series
+	----------------------------------
+	@param unsigned int seriesID - the series´ ID in table "Series"
+	@param TGenres genre - the new genre to set
 */
 void updateSeriesGenre(unsigned int seriesID, TGenres genre)
 {
@@ -789,9 +797,10 @@ void updateSeriesGenre(unsigned int seriesID, TGenres genre)
 }
 
 /**
-	...
-	------------------------------
-	...
+	Update release year of a given movie
+	------------------------------------
+	@param unsigned int movieID - the movies´ ID in table "Movies"
+	@param unsigned short year - the new release year to set
 */
 void updateMovieReleaseYear(unsigned int movieID, unsigned short year)
 {
@@ -801,9 +810,10 @@ void updateMovieReleaseYear(unsigned int movieID, unsigned short year)
 }
 
 /**
-	...
-	------------------------------
-	...
+	Update the season of a given series
+	-----------------------------------
+	@param unsigned int seriesID - the series´ ID in table "Series"
+	@param unsigned short season - the new season to set
 */
 void updateSeriesSeason(unsigned int seriesID, unsigned short season)
 {
@@ -813,9 +823,10 @@ void updateSeriesSeason(unsigned int seriesID, unsigned short season)
 }
 
 /**
-	...
-	------------------------------
-	...
+	Update the runtime of a given movie
+	-----------------------------------
+	@param unsigned int movieID - the movies´ ID in table "Movies"
+	@param const char *runtime - the new runtime to set
 */
 void updateMovieRuntime(unsigned int movieID, const char *runtime)
 {
@@ -825,9 +836,10 @@ void updateMovieRuntime(unsigned int movieID, const char *runtime)
 }
 
 /**
-	...
-	------------------------------
-	...
+	Update the release year of a given series
+	-----------------------------------------
+	@param unsigned int seriesID - the series´ ID in table "Series"
+	@param unsigned short year - the new release year to set
 */
 void updateSeriesReleaseYear(unsigned int seriesID, unsigned short year)
 {
@@ -837,9 +849,10 @@ void updateSeriesReleaseYear(unsigned int seriesID, unsigned short year)
 }
 
 /**
-	...
-	------------------------------
-	...
+	Update the quality of a given movie
+	-----------------------------------
+	@param unsigned int movieID - the movies´ ID in table "Movies"
+	@param TQualities quality - the new quality to set
 */
 void updateMovieQuality(unsigned int movieID, TQualities quality)
 {
@@ -849,9 +862,10 @@ void updateMovieQuality(unsigned int movieID, TQualities quality)
 }
 
 /**
-	...
-	------------------------------
-	...
+	Update the quality of a given series
+	------------------------------------
+	@param unsigned int seriesID - the series´ ID in table "Series"
+	@param TQualities quality - the new quality to set
 */
 void updateSeriesQuality(unsigned int seriesID, TQualities quality)
 {
@@ -861,9 +875,10 @@ void updateSeriesQuality(unsigned int seriesID, TQualities quality)
 }
 
 /**
-	...
-	------------------------------
-	...
+	Update the rating of a given movie
+	----------------------------------
+	@param unsigned int movieID - the movies´ ID in table "Movies"
+	@param unsigned short rating - the new rating to set
 */
 void updateMovieRating(unsigned int movieID, unsigned short rating)
 {
@@ -873,9 +888,10 @@ void updateMovieRating(unsigned int movieID, unsigned short rating)
 }
 
 /**
-	...
-	------------------------------
-	...
+	Update the rating of a given series
+	-----------------------------------
+	@param unsigned int seriesID - the series´ ID in table "Series"
+	@param unsigned short rating - the new rating to set
 */
 void updateSeriesRating(unsigned int seriesID, unsigned short rating)
 {
@@ -885,9 +901,10 @@ void updateSeriesRating(unsigned int seriesID, unsigned short rating)
 }
 
 /**
-	...
-	------------------------------
-	...
+	Update the community rating of a given movie
+	--------------------------------------------
+	@param unsigned int movieID - the movies´ ID in table "Movies"
+	@param unsigned short communityRating - the new community rating to set
 */
 void updateMovieCommunityRating(unsigned int movieID, unsigned short communityRating)
 {
@@ -897,9 +914,10 @@ void updateMovieCommunityRating(unsigned int movieID, unsigned short communityRa
 }
 
 /**
-	...
-	------------------------------
-	...
+	Update the community rating of a given series
+	---------------------------------------------
+	@param unsigned int seriesID - the series´ ID in table "Series"
+	@param unsigned short communityRating - the new community rating to set
 */
 void updateSeriesCommunityRating(unsigned int seriesID, unsigned short communityRating)
 {
@@ -909,9 +927,10 @@ void updateSeriesCommunityRating(unsigned int seriesID, unsigned short community
 }
 
 /**
-	...
-	------------------------------
-	...
+	Update the "seen"-flag of a given movie
+	---------------------------------------
+	@param unsigned int movieID - the movies´ ID in table "Movies"
+	@param bool alreadySeen - the new flag (true/false) to set
 */
 void updateMovieAlreadySeen(unsigned int movieID, bool alreadySeen)
 {
@@ -921,9 +940,10 @@ void updateMovieAlreadySeen(unsigned int movieID, bool alreadySeen)
 }
 
 /**
-	...
-	------------------------------
-	...
+	Update the "seen"-flag of a given series
+	----------------------------------------
+	@param unsigned int seriesID - the series´ ID in table "Series"
+	@param bool alreadySeen - the new flag (true/false) to set
 */
 void updateSeriesAlreadySeen(unsigned int seriesID, bool alreadySeen)
 {
@@ -933,9 +953,10 @@ void updateSeriesAlreadySeen(unsigned int seriesID, bool alreadySeen)
 }
 
 /**
-	...
-	------------------------------
-	...
+	Update the "isFavourite"-flag of a given movie
+	----------------------------------------------
+	@param unsigned int movieID - the movies´ ID in table "Movies"
+	@param bool isFavourite - the new flag (true/false) to set
 */
 void updateMovieIsFavourite(unsigned int movieID, bool isFavourite)
 {
@@ -945,9 +966,10 @@ void updateMovieIsFavourite(unsigned int movieID, bool isFavourite)
 }
 
 /**
-	...
-	------------------------------
-	...
+	Update the "isFavourite"-flag of a given series
+	-----------------------------------------------
+	@param unsigned int seriesID - the series´ ID in table "Series"
+	@param bool isFavourite - the new flag (true/false) to set
 */
 void updateSeriesIsFavourite(unsigned int seriesID, bool isFavourite)
 {
@@ -957,9 +979,10 @@ void updateSeriesIsFavourite(unsigned int seriesID, bool isFavourite)
 }
 
 /**
-	...
-	------------------------------
-	...
+	Update the "archive" string of a given movie
+	--------------------------------------------
+	@param unsigned int movieID - the movies´ ID in table "Movies"
+	@param const char *archived - the new archive-path/string to set
 */
 void updateMovieArchive(unsigned int movieID, const char *archived)
 {
@@ -969,9 +992,10 @@ void updateMovieArchive(unsigned int movieID, const char *archived)
 }
 
 /**
-	...
-	------------------------------
-	...
+	Update the "archive" string of a given series
+	---------------------------------------------
+	@param unsigned int seriesID - the series´ ID in table "Series"
+	@param const char *archived - the new archive-path/string to set
 */
 void updateSeriesArchive(unsigned int seriesID, const char *archived)
 {
@@ -979,6 +1003,5 @@ void updateSeriesArchive(unsigned int seriesID, const char *archived)
 
 	return;
 }
-
 
 //...
