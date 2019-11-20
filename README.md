@@ -1,7 +1,10 @@
+![](https://github.com/hackmac89/cMovies/workflows/C%2FC%2B%2B%20CI/badge.svg)
+![](https://github.com/hackmac89/cMovies/workflows/Greetings/badge.svg?event=issues)
+
 # cMovies
 Coming soon :smiley:
 
-##Table of contents
+## Table of contents
 
 1. [About](#about)
 2. [Installation](#installation)
@@ -15,6 +18,7 @@ Coming soon :smiley:
 6. [Examples](#examples)
 
 <div id='about' />
+
 ## 1. About
 
 *cMovies* is a small (in the works) command-line-utility for managing a [sqlite3](http://www.sqlite.org/about.html) database to
@@ -27,11 +31,13 @@ Furthermore, you are able to store the materials´ quality (e.g. _**DVD**_, _**B
 *cMovies* will be running under *Unix*-based operating systems (when using [NCurses](https://www.gnu.org/software/ncurses/)/[CDK](http://invisible-island.net/cdk/manpage/cdk.3.html)).
 
 <div id='installation' />
+
 ## 2. Installation
 
 Since this is just a little project, there´s not much to do... 
 
 <div id='create_database' />
+
 ### Creating the database
 
 Just run the shell script inside the project directory with 
@@ -51,9 +57,11 @@ inside the project directory to call the *MAKEFILE* with *make*, which will crea
 Alternatively, you can use the included XCode project file if you´re developing under MacOS.
 
 <div id='structure' />
+
 ## 3. Structure
 
 <div id='database_structure' />
+
 ### Database structure
 
 ![database layout](./movies_db_layout.jpg)
@@ -61,6 +69,7 @@ Alternatively, you can use the included XCode project file if you´re developing
 *Look into the &ldquor;movies.sql&rdquor; file for further information about the layout* 
 
 <div id='code_structure' />
+
 ### Code structure
    
      [PROJECT-DIR]
@@ -100,6 +109,7 @@ Alternatively, you can use the included XCode project file if you´re developing
            - movies.sql : SQL DDL statements which define our database layout
              
 <div id='todo' />
+
 ## 4. TODO-list
 
 - [x] define DDL
@@ -112,6 +122,7 @@ Alternatively, you can use the included XCode project file if you´re developing
 - [ ] adding support for online databases like &ldquor;rottentomatoes&rdquor; etc. (???) 
 
 <div id='changelog' />
+
 ## 5. Changelog
 
 What´s New ?!
@@ -141,6 +152,7 @@ What´s New ?!
 >       
 
 <div id='examples' />
+
 ## 6. Examples
 
 *Check out the &ldquor;tests&rdquor; directory*
